@@ -59,6 +59,8 @@ spices_upstream_repo="${SPICES_UPSTREAM_REPO:-linuxmint/cinnamon-spices-applets}
 spices_base_branch="${SPICES_BASE_BRANCH:-master}"
 spices_branch_prefix="${SPICES_BRANCH_PREFIX:-quick-alarm-release-}"
 
+export GIT_TERMINAL_PROMPT=0
+
 "$REPO_ROOT/tools/build.sh"
 
 tmp_dir="$(mktemp -d)"
@@ -66,9 +68,11 @@ cleanup() { rm -rf "$tmp_dir"; }
 trap cleanup EXIT
 
 spices_dir="$tmp_dir/cinnamon-spices-applets"
-gh repo clone "$spices_fork_repo" "$spices_dir" -- --depth 1
+git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${spices_fork_repo}.git" "$spices_dir" >/dev/null
 
-git -C "$spices_dir" remote add upstream "https://github.com/${spices_upstream_repo}.git" || true
+if ! git -C "$spices_dir" remote get-url upstream >/dev/null 2>&1; then
+  git -C "$spices_dir" remote add upstream "https://github.com/${spices_upstream_repo}.git"
+fi
 git -C "$spices_dir" fetch upstream "$spices_base_branch" --depth 1
 
 safe_tag="${tag//\//-}"
@@ -118,4 +122,3 @@ gh pr create \
   --head "${fork_owner}:${branch}" \
   --title "Quick Alarm ${tag}" \
   --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"
-

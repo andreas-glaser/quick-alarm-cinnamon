@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag name to publish (e.g. v1.0.0)"
+        required: true
+        type: string
 
 jobs:
   open-spices-pr:
@@ -27,5 +33,8 @@ jobs:
             echo "Missing required secret: SPICES_GH_TOKEN" >&2
             exit 2
           fi
-          tools/spices/publish-tag.sh --tag "${GITHUB_REF_NAME}"
-
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          fi
+          tools/spices/publish-tag.sh --tag "${TAG}"
