@@ -75,6 +75,10 @@ if ! git -C "$spices_dir" remote get-url upstream >/dev/null 2>&1; then
 fi
 git -C "$spices_dir" fetch upstream "$spices_base_branch" --depth 1
 
+if [[ "$tag" != v* ]]; then
+  tag="v${tag}"
+fi
+
 safe_tag="${tag//\//-}"
 branch="${spices_branch_prefix}${safe_tag}"
 git -C "$spices_dir" checkout -B "$branch" "upstream/${spices_base_branch}"
@@ -116,9 +120,13 @@ if [[ -n "${existing_pr_number:-}" ]]; then
   exit 0
 fi
 
-gh pr create \
+if ! gh pr create \
   --repo "$spices_upstream_repo" \
   --base "$spices_base_branch" \
   --head "${fork_owner}:${branch}" \
   --title "Quick Alarm ${tag}" \
-  --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"
+  --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"; then
+  echo "Failed to create PR. If you see \"Resource not accessible by personal access token\", use a classic PAT for SPICES_GH_TOKEN." >&2
+  echo "Manual PR link: https://github.com/${spices_upstream_repo}/compare/${spices_base_branch}...${fork_owner}:${branch}?expand=1" >&2
+  exit 1
+fi

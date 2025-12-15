@@ -9,7 +9,10 @@
 When you push a tag like `v1.2.3`, GitHub Actions opens (or updates) a PR against `linuxmint/cinnamon-spices-applets`.
 
 Required GitHub secret in this repo:
-- `SPICES_GH_TOKEN`: a GitHub PAT with `repo` access to `andreas-glaser/cinnamon-spices-applets`.
+- `SPICES_GH_TOKEN`: a **classic** GitHub PAT (fine-grained tokens won’t work here) with at least:
+  - `public_repo` (or `repo`)
+
+Why classic: the workflow needs to create a PR against `linuxmint/cinnamon-spices-applets`, which fine-grained PATs can’t target.
 
 ## Publishing to Cinnamon Spices
 
