@@ -6,7 +6,7 @@
 
 ## GitHub Releases
 
-Push a tag like `v1.0.0` to create a GitHub Release with the `dist/*.zip` attached.
+Push a tag like `v1.0.0` to create a GitHub Release with the `dist/*.zip` attached. Manual runs also accept `1.0.0` (it will be normalized to `v1.0.0`).
 
 ## Automated Spices PRs on tags
 
