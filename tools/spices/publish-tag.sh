@@ -138,11 +138,13 @@ else
 fi
 
 if [[ -n "${existing_pr_number:-}" ]]; then
-  gh pr edit \
+  if ! gh pr edit \
     --repo "$spices_upstream_repo" \
     "$existing_pr_number" \
     --title "Quick Alarm ${tag}" \
-    --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon" >/dev/null 2>&1 || true
+    --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"; then
+    echo "Warning: failed to update PR title/body; branch was pushed successfully." >&2
+  fi
   echo "Updated existing PR: https://github.com/${spices_upstream_repo}/pull/${existing_pr_number}"
   exit 0
 fi
