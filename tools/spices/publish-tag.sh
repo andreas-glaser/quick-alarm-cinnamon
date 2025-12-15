@@ -134,7 +134,7 @@ if git -C "$spices_dir" diff --cached --quiet; then
 else
   git -C "$spices_dir" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
     commit -m "Quick Alarm ${tag}"
-  git -C "$spices_dir" push -u origin "$branch" --force-with-lease
+  git -C "$spices_dir" push -u origin "$branch" --force
 fi
 
 if [[ -n "${existing_pr_number:-}" ]]; then
