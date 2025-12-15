@@ -1,6 +1,6 @@
 # Quick Alarm (Cinnamon Applet)
 
-Queue alarms fast from your Cinnamon panel. Open the applet menu, type a time, press Enter.
+Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, press Enter.
 
 ![Screenshot](docs/assets/screenshot.png)
 
