@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed
+- Alarms no longer drift across suspend/resume; overdue alarms are handled (fire within a small grace window, otherwise notify as missed) and removed from the queue.
+
+### Added
+- Unit tests for alarm reconciliation and scheduling logic.
+
+### Changed
+- README now includes end-user usage and behavior notes.
+
 ## 1.0.1 - 2025-12-15
 
 ### Fixed

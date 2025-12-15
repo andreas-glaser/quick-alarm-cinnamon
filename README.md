@@ -1,22 +1,45 @@
 # Quick Alarm (Cinnamon Applet)
 
-Queue alarms fast from your Cinnamon panel.
+Queue alarms fast from your Cinnamon panel. Open the applet menu, type a time, press Enter.
 
 ![Screenshot](docs/assets/screenshot.png)
 
-Examples:
+## Usage
+
+1. Click the applet (alarm icon) in your panel.
+2. Type an alarm time (optionally with a label).
+3. Press Enter.
+
+### Examples
 - `in 10m tea`
+- `after 5m - stretch`
+- `5 seconds`
 - `11:59am claude`
+- `claude at 11:59 am`
 - `tomorrow 11:30 - reset`
+
+### What happens when it fires
+- Shows a desktop notification and plays a sound.
+- Click the notification to silence.
+
+### Sleep / wake behavior
+If your computer wakes after an alarm time:
+- If it’s only slightly overdue, it fires immediately.
+- If it’s overdue by more than a short grace window, you get a “Missed alarm” notification (no sound) and it’s removed from the queue.
 
 ## Local Install (Linux Mint / Cinnamon)
 ```bash
 tools/install.sh
 ```
 
-Restart Cinnamon (Alt+F2 → `r`), then add the applet from panel settings.
+Restart Cinnamon (Alt+F2 → `r`), then add the applet from:
+Panel Settings → Applets
 
-## Dev
+## Settings
+- **Alarm sound mode**: chime once, or ring for a duration
+- **Ring duration**: how long “ring” mode plays sounds
+
+## Development
 - Build output: `tools/build.sh` → `applet/quick-alarm@andreas-glaser/`
 - Tests: `tests/run.sh` (requires `gjs`)
 - Release zip: `tools/release.sh`

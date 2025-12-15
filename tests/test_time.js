@@ -14,6 +14,14 @@ function near(a, b, toleranceMs, msg) {
   assert(Math.abs(a - b) <= toleranceMs, msg || `expected |${a} - ${b}| <= ${toleranceMs}`);
 }
 
+function _utcMidnightFromLocalDate(d) {
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function dayDeltaLocal(a, b) {
+  return Math.round((_utcMidnightFromLocalDate(a) - _utcMidnightFromLocalDate(b)) / (24 * 60 * 60 * 1000));
+}
+
 function _runOkCase(c) {
   const now = new Date(c.now);
   const r = Time.parseAlarmSpec(c.input, now);
@@ -23,7 +31,8 @@ function _runOkCase(c) {
   if (c.showSeconds !== undefined)
     eq(r.showSeconds, c.showSeconds, `showSeconds mismatch for "${c.input}"`);
 
-  if (c.dueISO) eq(r.due.toISOString(), new Date(c.dueISO).toISOString(), `due mismatch for "${c.input}"`);
+  if (c.dueDayDelta !== undefined)
+    eq(dayDeltaLocal(r.due, now), c.dueDayDelta, `day delta mismatch for "${c.input}"`);
   if (c.dueNearMs !== undefined)
     near(r.due.getTime(), now.getTime() + c.dueNearMs, 1500, `due near mismatch for "${c.input}"`);
 
@@ -57,11 +66,11 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:30:00", input: "claude at 11:59am", label: "claude", showSeconds: false, dueHHMM: "11:59" },
 
     // "today"/"tomorrow" helpers
-    { now: "2025-01-01T10:00:00", input: "tomorrow 11am tea", label: "tea", showSeconds: false, dueISO: "2025-01-02T11:00:00.000Z" },
-    { now: "2025-01-01T10:00:00", input: "tmr 11am tea", label: "tea", showSeconds: false, dueISO: "2025-01-02T11:00:00.000Z" },
-    { now: "2025-01-01T10:00:00", input: "tomorrow at 11am tea", label: "tea", showSeconds: false, dueISO: "2025-01-02T11:00:00.000Z" },
-    { now: "2025-01-01T10:00:00", input: "today 11am tea", label: "tea", showSeconds: false, dueISO: "2025-01-01T11:00:00.000Z" },
-    { now: "2025-01-01T10:00:00", input: "today at 11am tea", label: "tea", showSeconds: false, dueISO: "2025-01-01T11:00:00.000Z" },
+    { now: "2025-01-01T10:00:00", input: "tomorrow 11am tea", label: "tea", showSeconds: false, dueDayDelta: 1, dueHHMM: "11:00" },
+    { now: "2025-01-01T10:00:00", input: "tmr 11am tea", label: "tea", showSeconds: false, dueDayDelta: 1, dueHHMM: "11:00" },
+    { now: "2025-01-01T10:00:00", input: "tomorrow at 11am tea", label: "tea", showSeconds: false, dueDayDelta: 1, dueHHMM: "11:00" },
+    { now: "2025-01-01T10:00:00", input: "today 11am tea", label: "tea", showSeconds: false, dueDayDelta: 0, dueHHMM: "11:00" },
+    { now: "2025-01-01T10:00:00", input: "today at 11am tea", label: "tea", showSeconds: false, dueDayDelta: 0, dueHHMM: "11:00" },
 
     // Relative basics (always show seconds)
     { now: "2025-01-01T10:00:05", input: "in 20m tea", label: "tea", showSeconds: true, dueNearMs: 20 * 60 * 1000 },

@@ -302,6 +302,7 @@ QuickAlarmApplet.prototype = {
     this._service = new AlarmService(
       () => this._render(),
       (alarm) => this._fire(alarm),
+      { onMissed: (alarm) => this._missed(alarm) },
     );
 
     this._entryText = this._entry.clutter_text;
@@ -316,6 +317,11 @@ QuickAlarmApplet.prototype = {
     });
     this.menu.connect("open-state-changed", (_menu, isOpen) => {
       if (!isOpen) return;
+      try {
+        if (this._service && this._service.reconcileNow) this._service.reconcileNow();
+      } catch (e) {
+        // ignore
+      }
       this._errorLabel.text = "";
       this._entry.grab_key_focus();
     });
@@ -390,6 +396,16 @@ QuickAlarmApplet.prototype = {
         // ignore
       }
     });
+    this._notificationSource.notify(notification);
+  },
+
+  _missed(alarm) {
+    const dueText = Time.formatTime(alarm.due, alarm.showSeconds);
+    const title = this._("Missed alarm");
+    const body = alarm.label ? `${dueText} ${alarm.label}`.trim() : `${this._("Alarm")} ${dueText}`;
+
+    const notification = new MessageTray.Notification(this._notificationSource, title, body);
+    notification.setTransient(true);
     this._notificationSource.notify(notification);
   },
 

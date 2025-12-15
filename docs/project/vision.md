@@ -19,6 +19,7 @@ Create a Cinnamon panel applet that makes it *ridiculously fast* to queue one or
 - **Alarm firing**: when due, show a desktop notification and play an audio alert.
   - Clicking the notification silences the alarm.
   - Ring mode stops audio when the duration ends.
+  - If the computer was asleep past the due time, treat it as a missed alarm (keep it simple and avoid stale queued items).
 
 ## UX Notes
 - Favor keyboard flow: open menu, type, press Enter.
