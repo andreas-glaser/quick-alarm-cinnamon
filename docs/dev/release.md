@@ -4,6 +4,13 @@
 2. Run `tools/release.sh` to create a zip under `dist/`
 3. Upload the zip contents (the `quick-alarm@andreas-glaser/` folder) to Cinnamon Spices.
 
+## Automated Spices PRs on tags
+
+When you push a tag like `v1.2.3`, GitHub Actions opens (or updates) a PR against `linuxmint/cinnamon-spices-applets`.
+
+Required GitHub secret in this repo:
+- `SPICES_GH_TOKEN`: a GitHub PAT with `repo` access to `andreas-glaser/cinnamon-spices-applets`.
+
 ## Publishing to Cinnamon Spices
 
 There are two common paths:
@@ -29,6 +36,14 @@ This assumes you have a local clone at `/tmp/cinnamon-spices/cinnamon-spices-app
 
 ```bash
 SPICES_REPO_DIR=/path/to/cinnamon-spices-applets SPICES_BRANCH=my-branch tools/spices-update-pr.sh
+```
+
+## Create a new Spices PR locally (from a tag)
+
+```bash
+export GH_TOKEN=...
+export SPICES_FORK_REPO=andreas-glaser/cinnamon-spices-applets
+tools/spices/publish-tag.sh --tag v1.2.3
 ```
 
 ## Versioning

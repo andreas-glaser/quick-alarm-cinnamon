@@ -1,0 +1,31 @@
+name: Cinnamon Spices PR
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  open-spices-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gettext zip
+
+      - name: Create/Update Spices PR
+        env:
+          GH_TOKEN: ${{ secrets.SPICES_GH_TOKEN }}
+          SPICES_FORK_REPO: andreas-glaser/cinnamon-spices-applets
+          SPICES_UPSTREAM_REPO: linuxmint/cinnamon-spices-applets
+          SPICES_BASE_BRANCH: master
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "Missing required secret: SPICES_GH_TOKEN" >&2
+            exit 2
+          fi
+          tools/spices/publish-tag.sh --tag "${GITHUB_REF_NAME}"
+
