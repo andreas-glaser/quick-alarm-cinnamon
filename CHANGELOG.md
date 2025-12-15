@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.2 - 2025-12-15
+
 ### Fixed
 - Alarms no longer drift across suspend/resume; overdue alarms are handled (fire within a small grace window, otherwise notify as missed) and removed from the queue.
 
