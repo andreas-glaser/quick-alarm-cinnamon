@@ -20,7 +20,7 @@ cat >"$APPLET_ROOT/metadata.json" <<EOF
   "name": "Quick Alarm",
   "description": "Queue alarms quickly.",
   "icon": "alarm-symbolic",
-  "version": 1,
+  "version": $APPLET_VERSION,
   "max-instances": 1
 }
 EOF

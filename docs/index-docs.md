@@ -6,6 +6,7 @@ Minimal documentation for this Cinnamon applet project.
 - `docs/project/vision.md` (product intent and UX goals)
 - `docs/dev/development.md` (local dev loop)
 - `docs/dev/release.md` (how to package for Spices)
+- `docs/dev/versioning.md` (how releases are versioned)
 
 ## Process
 - `docs/process/index-process.md` (workflow overview)

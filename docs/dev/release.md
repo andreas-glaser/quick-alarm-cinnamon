@@ -16,3 +16,11 @@ There are two common paths:
 2. **Manual upload (if available for applets)**
    - Some Spices categories allow direct uploads through the website.
    - If the site offers upload for applets, use the zip produced by `tools/release.sh`.
+
+## Versioning
+
+Before publishing:
+- Bump the integer applet version in `VERSION` (this becomes `metadata.json` `"version"`).
+- Update `CHANGELOG.md` and (optionally) tag a release in this repo.
+
+Details: `docs/dev/versioning.md`.
