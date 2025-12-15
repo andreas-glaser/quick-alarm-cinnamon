@@ -4,6 +4,10 @@
 2. Run `tools/release.sh` to create a zip under `dist/`
 3. Upload the zip contents (the `quick-alarm@andreas-glaser/` folder) to Cinnamon Spices.
 
+## GitHub Releases
+
+Push a tag like `v1.0.0` to create a GitHub Release with the `dist/*.zip` attached.
+
 ## Automated Spices PRs on tags
 
 When you push a tag like `v1.2.3`, GitHub Actions opens (or updates) a PR against `linuxmint/cinnamon-spices-applets`.
