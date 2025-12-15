@@ -80,7 +80,38 @@ if [[ "$tag" != v* ]]; then
 fi
 
 safe_tag="${tag//\//-}"
-branch="${spices_branch_prefix}${safe_tag}"
+fork_owner="${spices_fork_repo%%/*}"
+
+existing_pr_branch="$(
+  gh pr list \
+    --repo "$spices_upstream_repo" \
+    --state open \
+    --json number,headRefName,headRepositoryOwner,createdAt \
+    --jq '
+      map(select(.headRepositoryOwner.login=="'"$fork_owner"'" and (.headRefName|startswith("'"$spices_branch_prefix"'"))))
+      | sort_by(.createdAt)
+      | .[0].headRefName // empty
+    ' || true
+)"
+
+existing_pr_number="$(
+  gh pr list \
+    --repo "$spices_upstream_repo" \
+    --state open \
+    --json number,headRefName,headRepositoryOwner,createdAt \
+    --jq '
+      map(select(.headRepositoryOwner.login=="'"$fork_owner"'" and (.headRefName|startswith("'"$spices_branch_prefix"'"))))
+      | sort_by(.createdAt)
+      | .[0].number // empty
+    ' || true
+)"
+
+if [[ -n "${existing_pr_branch:-}" ]]; then
+  branch="$existing_pr_branch"
+else
+  branch="${spices_branch_prefix}${safe_tag}"
+fi
+
 git -C "$spices_dir" checkout -B "$branch" "upstream/${spices_base_branch}"
 
 src_dir="$APPLET_ROOT"
@@ -103,20 +134,16 @@ if git -C "$spices_dir" diff --cached --quiet; then
 else
   git -C "$spices_dir" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
     commit -m "Quick Alarm ${tag}"
-  git -C "$spices_dir" push -u origin "$branch"
+  git -C "$spices_dir" push -u origin "$branch" --force-with-lease
 fi
 
-fork_owner="${spices_fork_repo%%/*}"
-existing_pr_number="$(
-  gh pr list \
-    --repo "$spices_upstream_repo" \
-    --head "${fork_owner}:${branch}" \
-    --json number \
-    --jq '.[0].number // empty' || true
-)"
-
 if [[ -n "${existing_pr_number:-}" ]]; then
-  echo "PR already exists: https://github.com/${spices_upstream_repo}/pull/${existing_pr_number}"
+  gh pr edit \
+    --repo "$spices_upstream_repo" \
+    "$existing_pr_number" \
+    --title "Quick Alarm ${tag}" \
+    --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon" >/dev/null 2>&1 || true
+  echo "Updated existing PR: https://github.com/${spices_upstream_repo}/pull/${existing_pr_number}"
   exit 0
 fi
 

@@ -18,6 +18,9 @@ Required GitHub secret in this repo:
 
 Why classic: the workflow needs to create a PR against `linuxmint/cinnamon-spices-applets`, which fine-grained PATs can’t target.
 
+Behavior:
+- If an open Spices PR already exists for this applet (created by this automation), new tags update that PR (single rolling PR).
+
 ## Publishing to Cinnamon Spices
 
 There are two common paths:
