@@ -42,13 +42,13 @@ function testParsingMatrix() {
     // Absolute (12h + 24h)
     { now: "2025-01-01T10:30:00", input: "11am tea", label: "tea", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:30:00", input: "11 am tea", label: "tea", showSeconds: false, dueHHMM: "11:00" },
-    { now: "2025-01-01T10:30:00", input: "11:30pm", label: "Alarm 23:30", showSeconds: false, dueHHMM: "23:30" },
-    { now: "2025-01-01T10:30:00", input: "11:30 pm", label: "Alarm 23:30", showSeconds: false, dueHHMM: "23:30" },
+    { now: "2025-01-01T10:30:00", input: "11:30pm", label: "", showSeconds: false, dueHHMM: "23:30" },
+    { now: "2025-01-01T10:30:00", input: "11:30 pm", label: "", showSeconds: false, dueHHMM: "23:30" },
     { now: "2025-01-01T10:30:00", input: "11.30 standup", label: "standup", showSeconds: false, dueHHMM: "11:30" },
     { now: "2025-01-01T10:30:00", input: "13:45 lunch", label: "lunch", showSeconds: false, dueHHMM: "13:45" },
-    { now: "2025-01-01T11:30:00", input: "11:00", label: "Alarm 11:00", showSeconds: false, dueHHMM: "11:00" }, // rolls to next day
-    { now: "2025-01-01T10:30:00", input: "12am", label: "Alarm 00:00", showSeconds: false, dueHHMM: "00:00" },
-    { now: "2025-01-01T10:30:00", input: "12pm", label: "Alarm 12:00", showSeconds: false, dueHHMM: "12:00" },
+    { now: "2025-01-01T11:30:00", input: "11:00", label: "", showSeconds: false, dueHHMM: "11:00" }, // rolls to next day
+    { now: "2025-01-01T10:30:00", input: "12am", label: "", showSeconds: false, dueHHMM: "00:00" },
+    { now: "2025-01-01T10:30:00", input: "12pm", label: "", showSeconds: false, dueHHMM: "12:00" },
 
     // Absolute with label separator
     { now: "2025-01-01T10:30:00", input: "11am - standup", label: "standup", showSeconds: false, dueHHMM: "11:00" },
@@ -75,7 +75,7 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:00:05", input: "alarm in 1 minute", label: "", showSeconds: true, dueNearMs: 60 * 1000 },
     { now: "2025-01-01T10:00:05", input: "set alarm in 1 minute", label: "", showSeconds: true, dueNearMs: 60 * 1000 },
     { now: "2025-01-01T10:00:05", input: "add reminder 11am - reset", label: "reset", showSeconds: false, dueHHMM: "11:00" },
-    { now: "2025-01-01T10:00:05", input: ", 11am", label: "Alarm 11:00", showSeconds: false, dueHHMM: "11:00" },
+    { now: "2025-01-01T10:00:05", input: ", 11am", label: "", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: "at 11am tea", label: "tea", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: "for 10 seconds tea", label: "tea", showSeconds: true, dueNearMs: 10 * 1000 },
   ];
