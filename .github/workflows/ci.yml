@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gettext gjs zip
+
+      - name: Validate JSON
+        run: |
+          python3 -m json.tool src/settings-schema.json >/dev/null
+
+      - name: Build
+        run: tools/build.sh
+
+      - name: Tests
+        run: tests/run.sh
+
+      - name: Package
+        run: tools/release.sh
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-alarm@andreas-glaser
+          path: dist/*.zip
+
