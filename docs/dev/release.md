@@ -17,6 +17,20 @@ There are two common paths:
    - Some Spices categories allow direct uploads through the website.
    - If the site offers upload for applets, use the zip produced by `tools/release.sh`.
 
+## Updating an open Spices PR
+
+If you have a fork + PR open against `linuxmint/cinnamon-spices-applets`, you can sync your latest applet build into your PR branch with:
+
+```bash
+tools/spices-update-pr.sh
+```
+
+This assumes you have a local clone at `/tmp/cinnamon-spices/cinnamon-spices-applets` with a `fork` remote and branch `add-quick-alarm-applet`. Override with:
+
+```bash
+SPICES_REPO_DIR=/path/to/cinnamon-spices-applets SPICES_BRANCH=my-branch tools/spices-update-pr.sh
+```
+
 ## Versioning
 
 Before publishing:
