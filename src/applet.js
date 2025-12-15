@@ -16,20 +16,6 @@ let AlarmService = null;
 let Time = null;
 
 function _playChime(onPid) {
-  const wavPath = `${APPLET_PATH}/assets/sounds/alarm.wav`;
-
-  const candidates = ["pw-play", "paplay", "aplay"];
-  for (const bin of candidates) {
-    try {
-      if (!GLib.find_program_in_path(bin)) continue;
-      const pid = Util.spawn([bin, wavPath]);
-      if (onPid && pid) onPid(pid);
-      return;
-    } catch (e) {
-      // try next
-    }
-  }
-
   try {
     if (GLib.find_program_in_path("canberra-gtk-play")) {
       const pid = Util.spawn(["canberra-gtk-play", "-i", "alarm-clock-elapsed"]);
@@ -454,7 +440,8 @@ QuickAlarmApplet.prototype = {
 
 function main(metadata, orientation, panelHeight, instanceId) {
   APPLET_PATH = AppletManager.appletMeta[metadata.uuid].path;
-  Gettext.bindtextdomain(metadata.uuid, `${APPLET_PATH}/locale`);
+  // Cinnamon Spices installs translations to ~/.local/share/locale/<lang>/LC_MESSAGES/<uuid>.mo
+  Gettext.bindtextdomain(metadata.uuid, GLib.get_home_dir() + "/.local/share/locale");
   imports.searchPath.unshift(APPLET_PATH);
   AlarmService = imports.services.alarmService.AlarmService;
   Time = imports.lib.time;
