@@ -133,13 +133,31 @@ function parseAlarmSpec(input, now = new Date(), t = null) {
     };
   }
 
-  let parts = spec.split(/\s+/);
-
-  // Support "label time" and "label at time" (e.g. "claude 11:59am", "claude at 11:59am").
-  if (parts.length >= 2 && (parts[parts.length - 2] || "").toLowerCase() === "at") {
-    parts = parts.slice(0, parts.length - 2).concat(parts[parts.length - 1]);
+  function looksTimeToken(tok) {
+    return /^\d{1,2}([:.]\d{2})?$/.test(tok);
   }
 
+  function looksAmPm(tok) {
+    return /^(am|pm)$/i.test(tok);
+  }
+
+  // Normalize token stream so these work:
+  // - "11 am tea" -> "11am tea"
+  // - "claude at 11:59 am" -> "claude 11:59am"
+  let parts = [];
+  const rawParts = spec.split(/\s+/).filter(Boolean);
+  for (let i = 0; i < rawParts.length; i++) {
+    const tok = rawParts[i];
+    if (tok.toLowerCase() === "at") continue;
+    if (looksTimeToken(tok) && i + 1 < rawParts.length && looksAmPm(rawParts[i + 1])) {
+      parts.push(tok + rawParts[i + 1]);
+      i++;
+      continue;
+    }
+    parts.push(tok);
+  }
+
+  // Support "label time" and "label at time" (e.g. "claude 11:59am", "claude at 11:59am").
   let timePart = parts[0];
   let label = split.label || parts.slice(1).join(" ").trim();
   let abs = _parseAbsoluteTime(timePart);
