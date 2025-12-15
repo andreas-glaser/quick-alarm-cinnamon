@@ -15,9 +15,34 @@ let APPLET_PATH = null;
 let AlarmService = null;
 let Time = null;
 
-function _playChime(onPid) {
+function _spawnWithExitCallback(argv, onExit) {
+  const pid = Util.spawn(argv);
+  if (!pid) return 0;
+
+  if (onExit) {
+    try {
+      GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, (childPid) => {
+        try {
+          GLib.spawn_close_pid(childPid);
+        } catch (e) {
+          // ignore
+        }
+        try {
+          onExit(childPid);
+        } catch (e) {
+          // ignore
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return pid;
+}
+
+function _playChime({ onPid, onExit } = {}) {
   const candidates = [
-    // Preferred: play a known system sound file directly (more reliable than sound-theme lookup).
     {
       cmd: "paplay",
       argv: () => {
@@ -29,7 +54,6 @@ function _playChime(onPid) {
         return soundPath ? ["paplay", soundPath] : null;
       },
     },
-    // Fallback: sound-theme lookup.
     {
       cmd: "canberra-gtk-play",
       argv: () => ["canberra-gtk-play", "-i", "alarm-clock-elapsed"],
@@ -41,13 +65,16 @@ function _playChime(onPid) {
       if (!GLib.find_program_in_path(candidate.cmd)) continue;
       const argv = candidate.argv();
       if (!argv) continue;
-      const pid = Util.spawn(argv);
+
+      const pid = _spawnWithExitCallback(argv, (childPid) => onExit && onExit(childPid));
       if (onPid && pid) onPid(pid);
-      return;
+      return pid;
     } catch (e) {
       // try next candidate
     }
   }
+
+  return 0;
 }
 
 function QuickAlarmApplet(metadata, orientation, panelHeight, instanceId) {
@@ -166,6 +193,7 @@ QuickAlarmApplet.prototype = {
     this._blinkTimerId = 0;
     this._ringEndTimerId = 0;
     this._isRinging = false;
+    this._ringToken = 0;
     this._panelState = "idle";
 
     this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
@@ -347,6 +375,7 @@ QuickAlarmApplet.prototype = {
   },
 
   _fire(alarm) {
+    this._stopAllSounds();
     this._playAlarmSound();
     const title = this._("Alarm");
     const body = alarm.label || `Alarm ${Time.formatTime(alarm.due, alarm.showSeconds)}`;
@@ -365,6 +394,7 @@ QuickAlarmApplet.prototype = {
   },
 
   _stopAllSounds() {
+    this._ringToken++;
     for (const id of this._activeSoundTimers) GLib.source_remove(id);
     this._activeSoundTimers.clear();
 
@@ -386,28 +416,35 @@ QuickAlarmApplet.prototype = {
 
   _playAlarmSound() {
     if (this._soundMode !== "ring") {
-      _playChime((pid) => this._activeAudioPids.add(pid));
+      _playChime({
+        onPid: (pid) => this._activeAudioPids.add(pid),
+        onExit: (pid) => this._activeAudioPids.delete(pid),
+      });
       this._startRingingWindow(2000);
       return;
     }
 
     const seconds = Math.max(1, Number(this._ringSeconds) || 1);
-    const intervalMs = 1000;
     const endAt = Date.now() + seconds * 1000;
+    const token = ++this._ringToken;
 
-    _playChime((pid) => this._activeAudioPids.add(pid));
     this._startRingingWindow(seconds * 1000);
 
-    const timerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, intervalMs, () => {
-      if (Date.now() >= endAt) {
-        this._activeSoundTimers.delete(timerId);
-        return GLib.SOURCE_REMOVE;
-      }
-      _playChime((pid) => this._activeAudioPids.add(pid));
-      return GLib.SOURCE_CONTINUE;
-    });
+    const playNext = () => {
+      if (token !== this._ringToken) return;
+      if (!this._isRinging) return;
+      if (Date.now() >= endAt) return;
 
-    this._activeSoundTimers.add(timerId);
+      _playChime({
+        onPid: (pid) => this._activeAudioPids.add(pid),
+        onExit: (pid) => {
+          this._activeAudioPids.delete(pid);
+          playNext();
+        },
+      });
+    };
+
+    playNext();
   },
 
   _render() {

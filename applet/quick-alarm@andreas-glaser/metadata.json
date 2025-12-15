@@ -3,6 +3,6 @@
   "name": "Quick Alarm",
   "description": "Queue alarms quickly.",
   "icon": "alarm-symbolic",
-  "version": 2,
+  "version": 3,
   "max-instances": 1
 }
