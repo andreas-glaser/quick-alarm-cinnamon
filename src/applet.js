@@ -14,6 +14,8 @@ const Gettext = imports.gettext;
 let APPLET_PATH = null;
 let AlarmService = null;
 let Time = null;
+let EntryKeys = null;
+let Hotkeys = null;
 
 function _spawnWithExitCallback(argv, onExit) {
   const pid = Util.spawn(argv);
@@ -83,6 +85,23 @@ function QuickAlarmApplet(metadata, orientation, panelHeight, instanceId) {
 
 QuickAlarmApplet.prototype = {
   __proto__: Applet.TextIconApplet.prototype,
+
+  _registerOpenHotkey() {
+    if (!Hotkeys || !this._openHotkeyName) return;
+    Hotkeys.syncHotkey({
+      keybindingManager: Main.keybindingManager,
+      name: this._openHotkeyName,
+      accel: this._openShortcut,
+      onActivate: () => {
+        try {
+          this.menu.toggle();
+        } catch (e) {
+          // ignore
+        }
+      },
+      onError: (e) => global.logError(e),
+    });
+  },
 
   _updatePanelIconSize() {
     try {
@@ -188,6 +207,8 @@ QuickAlarmApplet.prototype = {
 
     this._soundMode = "chime";
     this._ringSeconds = 10;
+    this._openShortcut = "";
+    this._openHotkeyName = `${metadata.uuid}-open-${instanceId}`;
     this._activeSoundTimers = new Set();
     this._activeAudioPids = new Set();
     this._blinkTimerId = 0;
@@ -199,6 +220,7 @@ QuickAlarmApplet.prototype = {
     this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
     this.settings.bind("soundMode", "_soundMode");
     this.settings.bind("ringSeconds", "_ringSeconds");
+    this.settings.bind("openShortcut", "_openShortcut", () => this._registerOpenHotkey());
 
     this.setAllowedLayout(Applet.AllowedLayout.BOTH);
     this.set_applet_icon_symbolic_name("alarm-symbolic");
@@ -224,11 +246,13 @@ QuickAlarmApplet.prototype = {
       icon_name: "emblem-system-symbolic",
       icon_type: St.IconType.SYMBOLIC,
       icon_size: 16,
+      y_align: Clutter.ActorAlign.CENTER,
     });
     this._settingsButton = new St.Button({
       child: gearIcon,
       can_focus: true,
       style_class: "qa-gear",
+      y_align: Clutter.ActorAlign.CENTER,
     });
     this._settingsButton.connect("clicked", () => {
       try {
@@ -245,11 +269,13 @@ QuickAlarmApplet.prototype = {
       icon_type: St.IconType.SYMBOLIC,
       icon_size: 16,
       style_class: "qa-header-icon",
+      y_align: Clutter.ActorAlign.CENTER,
     });
     const headerLabel = new St.Label({
       text: this._("Quick Alarm"),
       x_expand: true,
       style_class: "qa-header",
+      y_align: Clutter.ActorAlign.CENTER,
     });
     headerRow.add_child(headerIcon);
     headerRow.add_child(headerLabel);
@@ -262,7 +288,7 @@ QuickAlarmApplet.prototype = {
 
     this._entry = new St.Entry({
       style_class: "qa-entry",
-      hint_text: "Type: in 10m tea  •  11am standup  •  5 seconds",
+      hint_text: "Type: in 10m tea  •  11am standup  •  Ctrl+Enter adds another",
       track_hover: true,
       can_focus: true,
     });
@@ -276,7 +302,7 @@ QuickAlarmApplet.prototype = {
       can_focus: true,
       style_class: "qa-add",
     });
-    this._addButton.connect("clicked", () => this._submit());
+    this._addButton.connect("clicked", () => this._submit({ closeMenu: true }));
 
     const entryRow = new St.BoxLayout({ vertical: false, x_expand: true, style_class: "qa-entry-row" });
     entryRow.add_child(this._entry);
@@ -306,14 +332,21 @@ QuickAlarmApplet.prototype = {
     );
 
     this._entryText = this._entry.clutter_text;
-    this._entryText.connect("activate", () => this._submit());
     this._entryText.connect("key-press-event", (_actor, event) => {
-      const symbol = event.get_key_symbol();
-      if (symbol === Clutter.KEY_Return || symbol === Clutter.KEY_KP_Enter) {
-        this._submit();
+      try {
+        const intent = EntryKeys.getEntrySubmitIntent({
+          keySymbol: event.get_key_symbol(),
+          modifierState: event.get_state(),
+          keyReturn: Clutter.KEY_Return,
+          keyKPEnter: Clutter.KEY_KP_Enter,
+          controlMask: Clutter.ModifierType.CONTROL_MASK,
+        });
+        if (!intent) return Clutter.EVENT_PROPAGATE;
+        this._submit({ closeMenu: intent.closeMenu });
         return Clutter.EVENT_STOP;
+      } catch (e) {
+        return Clutter.EVENT_PROPAGATE;
       }
-      return Clutter.EVENT_PROPAGATE;
     });
     this.menu.connect("open-state-changed", (_menu, isOpen) => {
       if (!isOpen) return;
@@ -326,6 +359,7 @@ QuickAlarmApplet.prototype = {
       this._entry.grab_key_focus();
     });
 
+    this._registerOpenHotkey();
     this._render();
   },
 
@@ -354,13 +388,19 @@ QuickAlarmApplet.prototype = {
     } catch (e) {
       // ignore
     }
+    try {
+      if (Main.keybindingManager && this._openHotkeyName)
+        Main.keybindingManager.removeHotKey(this._openHotkeyName);
+    } catch (e) {
+      // ignore
+    }
     if (this._ringEndTimerId) GLib.source_remove(this._ringEndTimerId);
     this._ringEndTimerId = 0;
     this._stopBlinking();
     this.settings.finalize();
   },
 
-  _submit() {
+  _submit({ closeMenu = false } = {}) {
     try {
       const input = this._getEntryText();
       const parsed = Time.parseAlarmSpec(input, new Date(), (s) => this._(s));
@@ -374,6 +414,11 @@ QuickAlarmApplet.prototype = {
       this._setEntryText("");
       this._errorLabel.text = "";
       this._render();
+      if (closeMenu) {
+        this.menu.close();
+      } else {
+        this._entry.grab_key_focus();
+      }
     } catch (e) {
       global.logError(e);
       this._errorLabel.text = this._("Something went wrong. Check Looking Glass logs.");
@@ -522,5 +567,7 @@ function main(metadata, orientation, panelHeight, instanceId) {
   imports.searchPath.unshift(APPLET_PATH);
   AlarmService = imports.services.alarmService.AlarmService;
   Time = imports.lib.time;
+  EntryKeys = imports.lib.entryKeys;
+  Hotkeys = imports.lib.hotkeys;
   return new QuickAlarmApplet(metadata, orientation, panelHeight, instanceId);
 }

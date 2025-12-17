@@ -2,7 +2,7 @@
   "uuid": "quick-alarm@andreas-glaser",
   "name": "Quick Alarm",
   "description": "Queue alarms quickly.",
-  "icon": "alarm-symbolic",
+  "icon": "icon.png",
   "version": 4,
   "max-instances": 1
 }

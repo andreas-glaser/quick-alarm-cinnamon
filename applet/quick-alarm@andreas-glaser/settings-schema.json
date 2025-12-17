@@ -1,4 +1,13 @@
 {
+  "sectionShortcuts": {
+    "type": "section",
+    "description": "Shortcuts"
+  },
+  "openShortcut": {
+    "type": "keybinding",
+    "default": "<Super><Alt>A",
+    "description": "Open Quick Alarm"
+  },
   "sectionSound": {
     "type": "section",
     "description": "Sound"
@@ -22,4 +31,3 @@
     "description": "Ring duration (seconds)"
   }
 }
-

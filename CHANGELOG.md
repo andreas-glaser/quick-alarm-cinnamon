@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Changed
+- Enter now adds an alarm and closes the menu; Ctrl+Enter adds without closing (for rapid multi-add).
+- Refreshed the applet icon artwork (PNG/SVG) for Cinnamon Spices and the applet picker.
+
+### Added
+- Unit tests for the Enter/Ctrl+Enter submit behavior helper.
+- Unit tests for hotkey registration helper logic.
+- Configurable global shortcut to open the applet menu (default: Super+Alt+A).
+- Bundled applet icon files (`icon.png` / `icon-symbolic.svg`) for Cinnamon Spices and the applet picker.
+
 ## 1.0.2 - 2025-12-15
 
 ### Fixed

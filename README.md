@@ -8,7 +8,7 @@ Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, 
 
 1. Click the applet (alarm icon) in your panel.
 2. Type an alarm time (optionally with a label).
-3. Press Enter.
+3. Press Enter (or Ctrl+Enter to add another without closing).
 
 ### Examples
 - `in 10m tea`
@@ -38,6 +38,7 @@ Panel Settings → Applets
 ## Settings
 - **Alarm sound mode**: chime once, or ring for a duration
 - **Ring duration**: how long “ring” mode plays sounds
+- **Open shortcut**: global hotkey to open the applet menu (default: Super+Alt+A)
 
 ## Development
 - Build output: `tools/build.sh` → `applet/quick-alarm@andreas-glaser/`

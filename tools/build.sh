@@ -19,7 +19,7 @@ cat >"$APPLET_ROOT/metadata.json" <<EOF
   "uuid": "$UUID",
   "name": "Quick Alarm",
   "description": "Queue alarms quickly.",
-  "icon": "alarm-symbolic",
+  "icon": "icon.png",
   "version": $APPLET_VERSION,
   "max-instances": 1
 }

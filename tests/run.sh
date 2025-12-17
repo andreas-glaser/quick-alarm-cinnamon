@@ -9,3 +9,5 @@ fi
 gjs tests/test_time.js
 gjs tests/test_alarmReconcile.js
 gjs tests/test_alarmService.js
+gjs tests/test_entryKeys.js
+gjs tests/test_hotkeys.js
