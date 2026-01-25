@@ -28,3 +28,27 @@ msgstr "Esa hora ya pasó hoy."
 msgid "Try one of these:"
 msgstr "Prueba uno de estos:"
 
+msgid "Dismiss"
+msgstr "Cerrar"
+
+msgid "just now"
+msgstr "ahora mismo"
+
+msgid "%d seconds ago"
+msgstr "hace %d segundos"
+
+msgid "1 minute ago"
+msgstr "hace 1 minuto"
+
+msgid "%d minutes ago"
+msgstr "hace %d minutos"
+
+msgid "1 hour ago"
+msgstr "hace 1 hora"
+
+msgid "%d hours ago"
+msgstr "hace %d horas"
+
+msgid "Missed alarm"
+msgstr "Alarma perdida"
+

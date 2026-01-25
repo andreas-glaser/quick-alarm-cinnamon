@@ -1,4 +1,13 @@
 {
+  "sectionNotification": {
+    "type": "section",
+    "description": "Notification"
+  },
+  "fullscreenNotification": {
+    "type": "switch",
+    "default": true,
+    "description": "Show fullscreen notification"
+  },
   "sectionShortcuts": {
     "type": "section",
     "description": "Shortcuts"

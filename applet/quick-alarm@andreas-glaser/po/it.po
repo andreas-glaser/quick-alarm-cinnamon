@@ -28,3 +28,27 @@ msgstr "Quell'orario è già passato oggi."
 msgid "Try one of these:"
 msgstr "Prova uno di questi:"
 
+msgid "Dismiss"
+msgstr "Chiudi"
+
+msgid "just now"
+msgstr "proprio ora"
+
+msgid "%d seconds ago"
+msgstr "%d secondi fa"
+
+msgid "1 minute ago"
+msgstr "1 minuto fa"
+
+msgid "%d minutes ago"
+msgstr "%d minuti fa"
+
+msgid "1 hour ago"
+msgstr "1 ora fa"
+
+msgid "%d hours ago"
+msgstr "%d ore fa"
+
+msgid "Missed alarm"
+msgstr "Sveglia persa"
+

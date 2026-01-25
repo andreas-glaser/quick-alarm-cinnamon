@@ -3,7 +3,9 @@
 ## Unreleased
 
 ### Added
-- No changes yet.
+- Fullscreen notification overlay when alarm fires (can be disabled in settings). Shows the alarm time, label, and live "time ago" counter. Suggested by [@sphh](https://github.com/sphh) in [#1](https://github.com/andreas-glaser/quick-alarm-cinnamon/issues/1).
+- Translations for fullscreen overlay strings (de, es, fr, it, pt_BR).
+- Unit tests for time ago formatting logic.
 
 ## 1.1.0 - 2025-12-17
 

@@ -14,6 +14,7 @@ const Gettext = imports.gettext;
 let APPLET_PATH = null;
 let AlarmService = null;
 let Time = null;
+let TimeAgo = null;
 let EntryKeys = null;
 let Hotkeys = null;
 
@@ -207,6 +208,7 @@ QuickAlarmApplet.prototype = {
 
     this._soundMode = "chime";
     this._ringSeconds = 10;
+    this._fullscreenNotification = true;
     this._openShortcut = "";
     this._openHotkeyName = `${metadata.uuid}-open-${instanceId}`;
     this._activeSoundTimers = new Set();
@@ -216,10 +218,12 @@ QuickAlarmApplet.prototype = {
     this._isRinging = false;
     this._ringToken = 0;
     this._panelState = "idle";
+    this._fullscreenOverlay = null;
 
     this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
     this.settings.bind("soundMode", "_soundMode");
     this.settings.bind("ringSeconds", "_ringSeconds");
+    this.settings.bind("fullscreenNotification", "_fullscreenNotification");
     this.settings.bind("openShortcut", "_openShortcut", () => this._registerOpenHotkey());
 
     this.setAllowedLayout(Applet.AllowedLayout.BOTH);
@@ -382,6 +386,7 @@ QuickAlarmApplet.prototype = {
 
   on_applet_removed_from_panel() {
     this._stopAllSounds();
+    this._hideFullscreenOverlay();
     this._service.destroy();
     try {
       this._notificationSource.destroy();
@@ -428,20 +433,25 @@ QuickAlarmApplet.prototype = {
   _fire(alarm) {
     this._stopAllSounds();
     this._playAlarmSound();
-    const title = this._("Alarm");
-    const body = alarm.label || `Alarm ${Time.formatTime(alarm.due, alarm.showSeconds)}`;
 
-    const notification = new MessageTray.Notification(this._notificationSource, title, body);
-    notification.setTransient(false);
-    notification.connect("clicked", () => {
-      this._stopAllSounds();
-      try {
-        notification.destroy();
-      } catch (e) {
-        // ignore
-      }
-    });
-    this._notificationSource.notify(notification);
+    if (this._fullscreenNotification) {
+      this._showFullscreenOverlay(alarm);
+    } else {
+      const title = this._("Alarm");
+      const body = alarm.label || `Alarm ${Time.formatTime(alarm.due, alarm.showSeconds)}`;
+
+      const notification = new MessageTray.Notification(this._notificationSource, title, body);
+      notification.setTransient(false);
+      notification.connect("clicked", () => {
+        this._stopAllSounds();
+        try {
+          notification.destroy();
+        } catch (e) {
+          // ignore
+        }
+      });
+      this._notificationSource.notify(notification);
+    }
   },
 
   _missed(alarm) {
@@ -508,6 +518,144 @@ QuickAlarmApplet.prototype = {
     playNext();
   },
 
+  _formatTimeAgo(dueDate) {
+    return TimeAgo.formatTimeAgo(dueDate, Date.now(), (s) => this._(s));
+  },
+
+  _showFullscreenOverlay(alarm) {
+    this._hideFullscreenOverlay();
+
+    const monitor = Main.layoutManager.primaryMonitor;
+
+    // Create fullscreen overlay container
+    this._fullscreenOverlay = new St.Widget({
+      reactive: true,
+      x: monitor.x,
+      y: monitor.y,
+      width: monitor.width,
+      height: monitor.height,
+      style_class: "qa-fullscreen-overlay",
+    });
+
+    // Central card
+    const card = new St.BoxLayout({
+      vertical: true,
+      style_class: "qa-fullscreen-card",
+    });
+
+    // Alarm icon
+    const icon = new St.Icon({
+      icon_name: "alarm-symbolic",
+      icon_type: St.IconType.SYMBOLIC,
+      icon_size: 64,
+      style_class: "qa-fullscreen-icon",
+    });
+
+    // Time display
+    const timeText = Time.formatTime(alarm.due, alarm.showSeconds);
+    const timeLabel = new St.Label({
+      text: timeText,
+      style_class: "qa-fullscreen-time",
+    });
+
+    // Label/message (if present)
+    let message = null;
+    if (alarm.label) {
+      message = new St.Label({
+        text: alarm.label,
+        style_class: "qa-fullscreen-message",
+      });
+      message.clutter_text.line_wrap = true;
+      message.clutter_text.ellipsize = 0;
+    }
+
+    // Time ago (updates periodically)
+    const agoLabel = new St.Label({
+      text: this._formatTimeAgo(alarm.due),
+      style_class: "qa-fullscreen-ago",
+    });
+
+    // Update "ago" text every second
+    this._fullscreenAgoTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+      if (!this._fullscreenOverlay) return GLib.SOURCE_REMOVE;
+      try {
+        agoLabel.text = this._formatTimeAgo(alarm.due);
+      } catch (e) {
+        // ignore
+      }
+      return GLib.SOURCE_CONTINUE;
+    });
+
+    // Dismiss button
+    const dismissBtn = new St.Button({
+      label: this._("Dismiss"),
+      style_class: "qa-fullscreen-dismiss",
+      can_focus: true,
+    });
+    dismissBtn.connect("clicked", () => {
+      this._stopAllSounds();
+      this._hideFullscreenOverlay();
+    });
+
+    card.add_child(icon);
+    card.add_child(timeLabel);
+    if (message) card.add_child(message);
+    card.add_child(agoLabel);
+    card.add_child(dismissBtn);
+
+    // Center the card
+    card.set_position(
+      Math.floor((monitor.width - card.width) / 2),
+      Math.floor((monitor.height - card.height) / 2),
+    );
+
+    this._fullscreenOverlay.add_child(card);
+
+    // Dismiss on background click
+    this._fullscreenOverlay.connect("button-press-event", () => {
+      this._stopAllSounds();
+      this._hideFullscreenOverlay();
+      return Clutter.EVENT_STOP;
+    });
+
+    // Dismiss on Escape key
+    this._fullscreenKeyHandler = this._fullscreenOverlay.connect("key-press-event", (_actor, event) => {
+      const symbol = event.get_key_symbol();
+      if (symbol === Clutter.KEY_Escape || symbol === Clutter.KEY_Return || symbol === Clutter.KEY_space) {
+        this._stopAllSounds();
+        this._hideFullscreenOverlay();
+        return Clutter.EVENT_STOP;
+      }
+      return Clutter.EVENT_PROPAGATE;
+    });
+
+    Main.layoutManager.addChrome(this._fullscreenOverlay, { visibleInFullscreen: true });
+    global.stage.set_key_focus(this._fullscreenOverlay);
+
+    // Re-center after card gets its natural size
+    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+      if (this._fullscreenOverlay && card) {
+        card.set_position(
+          Math.floor((monitor.width - card.width) / 2),
+          Math.floor((monitor.height - card.height) / 2),
+        );
+      }
+      return GLib.SOURCE_REMOVE;
+    });
+  },
+
+  _hideFullscreenOverlay() {
+    if (this._fullscreenAgoTimerId) {
+      GLib.source_remove(this._fullscreenAgoTimerId);
+      this._fullscreenAgoTimerId = 0;
+    }
+    if (this._fullscreenOverlay) {
+      Main.layoutManager.removeChrome(this._fullscreenOverlay);
+      this._fullscreenOverlay.destroy();
+      this._fullscreenOverlay = null;
+    }
+  },
+
   _render() {
     this._listSection.removeAll();
     const alarms = this._service.list();
@@ -567,6 +715,7 @@ function main(metadata, orientation, panelHeight, instanceId) {
   imports.searchPath.unshift(APPLET_PATH);
   AlarmService = imports.services.alarmService.AlarmService;
   Time = imports.lib.time;
+  TimeAgo = imports.lib.timeAgo;
   EntryKeys = imports.lib.entryKeys;
   Hotkeys = imports.lib.hotkeys;
   return new QuickAlarmApplet(metadata, orientation, panelHeight, instanceId);
