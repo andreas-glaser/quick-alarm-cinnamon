@@ -19,8 +19,9 @@ Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, 
 - `tomorrow 11:30 - reset`
 
 ### What happens when it fires
-- Shows a desktop notification and plays a sound.
-- Click the notification to silence.
+- A fullscreen overlay appears showing the time, label, and how long ago it fired.
+- Plays an alarm sound.
+- Click anywhere, press Escape/Enter/Space, or click Dismiss to close.
 
 ### Sleep / wake behavior
 If your computer wakes after an alarm time:
@@ -36,8 +37,9 @@ Restart Cinnamon (Alt+F2 → `r`), then add the applet from:
 Panel Settings → Applets
 
 ## Settings
+- **Fullscreen notification**: show fullscreen overlay when alarm fires (default: on)
 - **Alarm sound mode**: chime once, or ring for a duration
-- **Ring duration**: how long “ring” mode plays sounds
+- **Ring duration**: how long "ring" mode plays sounds
 - **Open shortcut**: global hotkey to open the applet menu (default: Super+Alt+A)
 
 ## Development
