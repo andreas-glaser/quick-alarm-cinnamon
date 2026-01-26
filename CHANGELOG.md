@@ -5,6 +5,11 @@
 ### Added
 - No changes yet.
 
+## 1.2.1 - 2026-01-26
+
+### Fixed
+- Restructured applet for Cinnamon Spices compatibility (added info.json, README.md, files/ subdirectory).
+
 ## 1.2.0 - 2026-01-26
 
 ### Added
