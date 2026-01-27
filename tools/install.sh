@@ -8,7 +8,7 @@ source "$(dirname "$0")/config.sh"
 target="${CINNAMON_APPLETS_DIR:-$HOME/.local/share/cinnamon/applets}/$UUID"
 mkdir -p "$(dirname "$target")"
 rm -rf "$target"
-cp -a "$APPLET_FILES" "$target"
+cp -a "$APPLET_ROOT" "$target"
 
 if command -v msgfmt >/dev/null 2>&1 && [ -d "$REPO_ROOT/po" ]; then
   for po_file in "$REPO_ROOT"/po/*.po; do

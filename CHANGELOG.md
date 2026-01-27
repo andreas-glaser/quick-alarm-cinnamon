@@ -8,7 +8,8 @@
 ## 1.2.1 - 2026-01-26
 
 ### Fixed
-- Restructured applet for Cinnamon Spices compatibility (added info.json, README.md, files/ subdirectory).
+- Fixed Cinnamon Spices structure (info.json, README.md at root, applet files in files/UUID/).
+- Fixed license in info.json (MIT, not GPL-3.0).
 
 ## 1.2.0 - 2026-01-26
 

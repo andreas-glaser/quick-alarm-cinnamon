@@ -114,18 +114,62 @@ fi
 
 git -C "$spices_dir" checkout -B "$branch" "upstream/${spices_base_branch}"
 
-src_dir="$APPLET_ROOT"
-dst_dir="$spices_dir/$UUID/files/$UUID"
+spices_applet_dir="$spices_dir/$UUID"
+dst_dir="$spices_applet_dir/files/$UUID"
 
-rm -rf "$dst_dir"
-mkdir -p "$(dirname "$dst_dir")"
-cp -a "$src_dir" "$dst_dir"
+rm -rf "$spices_applet_dir"
+mkdir -p "$dst_dir"
+
+# Copy applet files to files/<UUID>/
+cp -a "$APPLET_ROOT/." "$dst_dir/"
 find "$dst_dir" -type f -name '*.mo' -delete || true
 
+# Create info.json at root
+cat >"$spices_applet_dir/info.json" <<EOF
+{
+  "author": "andreas-glaser",
+  "license": "MIT"
+}
+EOF
+
+# Create README.md at root
+cat >"$spices_applet_dir/README.md" <<'READMEEOF'
+# Quick Alarm
+
+Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, press Enter.
+
+## Usage
+
+1. Click the applet (alarm icon) in your panel.
+2. Type an alarm time (optionally with a label).
+3. Press Enter (or Ctrl+Enter to add another without closing).
+
+### Examples
+
+- `in 10m tea`
+- `after 5m - stretch`
+- `5 seconds`
+- `11:59am meeting`
+- `tomorrow 11:30 standup`
+
+### What happens when it fires
+
+- A fullscreen overlay appears showing the time, label, and how long ago it fired.
+- Plays an alarm sound.
+- Click anywhere, press Escape/Enter/Space, or click Dismiss to close.
+
+## Settings
+
+- **Fullscreen notification**: show fullscreen overlay when alarm fires (default: on)
+- **Alarm sound mode**: chime once, or ring for a duration
+- **Ring duration**: how long "ring" mode plays sounds
+- **Open shortcut**: global hotkey to open the applet menu (default: Super+Alt+A)
+READMEEOF
+
+# Copy screenshot
 screenshot_src="$REPO_ROOT/docs/assets/screenshot.png"
-screenshot_dst="$spices_dir/$UUID/screenshot.png"
 if [[ -f "$screenshot_src" ]]; then
-  cp -f "$screenshot_src" "$screenshot_dst"
+  cp -f "$screenshot_src" "$spices_applet_dir/screenshot.png"
 fi
 
 git -C "$spices_dir" add -A "$UUID"
