@@ -5,11 +5,14 @@
 ### Added
 - No changes yet.
 
-## 1.2.1 - 2026-01-26
+## 1.2.1 - `2026-01-27`
 
 ### Fixed
 - Fixed Cinnamon Spices structure (info.json, README.md at root, applet files in files/UUID/).
 - Fixed license in info.json (MIT, not GPL-3.0).
+- Added .pot template file for translations.
+- Fixed .po file headers (added required fields for Spices validation).
+- Removed forbidden `icon` field from metadata.json.
 
 ## 1.2.0 - 2026-01-26
 

@@ -2,7 +2,8 @@
 
 ## Layout
 - `src/` is the source of truth.
-- `applet/quick-alarm@andreas-glaser/` is the packaged applet folder (what you upload to Cinnamon Spices).
+- `applet/quick-alarm@andreas-glaser/` is the built applet folder (for local install).
+- `tools/spices/publish-tag.sh` creates the Spices-compatible structure (info.json, README.md, files/UUID/).
 
 ## Build
 Run `tools/build.sh` to sync `src/` into `applet/quick-alarm@andreas-glaser/`.
