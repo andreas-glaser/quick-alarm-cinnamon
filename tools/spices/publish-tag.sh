@@ -79,6 +79,18 @@ if [[ "$tag" != v* ]]; then
   tag="v${tag}"
 fi
 
+# Extract changelog for this version (same logic as release.yml)
+version_num="${tag#v}"
+changelog_section="$(
+  awk -v version="$version_num" '
+    $0 ~ /^## / {
+      if (found) exit
+      if ($0 ~ "^## " version " ") { found=1; next }
+    }
+    found { print }
+  ' "$REPO_ROOT/CHANGELOG.md"
+)"
+
 safe_tag="${tag//\//-}"
 fork_owner="${spices_fork_repo%%/*}"
 
@@ -181,12 +193,20 @@ else
   git -C "$spices_dir" push -u origin "$branch" --force
 fi
 
+# Build PR body with changelog
+pr_body="## Changes in ${tag}
+
+${changelog_section}
+
+---
+Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"
+
 if [[ -n "${existing_pr_number:-}" ]]; then
   if ! gh pr edit \
     --repo "$spices_upstream_repo" \
     "$existing_pr_number" \
     --title "Quick Alarm ${tag}" \
-    --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"; then
+    --body "$pr_body"; then
     echo "Warning: failed to update PR title/body; branch was pushed successfully." >&2
   fi
   echo "Updated existing PR: https://github.com/${spices_upstream_repo}/pull/${existing_pr_number}"
@@ -198,7 +218,7 @@ if ! gh pr create \
   --base "$spices_base_branch" \
   --head "${fork_owner}:${branch}" \
   --title "Quick Alarm ${tag}" \
-  --body "Automated update from tag \`${tag}\` in https://github.com/andreas-glaser/quick-alarm-cinnamon"; then
+  --body "$pr_body"; then
   echo "Failed to create PR. If you see \"Resource not accessible by personal access token\", use a classic PAT for SPICES_GH_TOKEN." >&2
   echo "Manual PR link: https://github.com/${spices_upstream_repo}/compare/${spices_base_branch}...${fork_owner}:${branch}?expand=1" >&2
   exit 1
