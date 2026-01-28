@@ -5,7 +5,12 @@
 ### Added
 - No changes yet.
 
-## 1.2.1 - `2026-01-27`
+## 1.2.2 - 2026-01-28
+
+### Fixed
+- Theme detection now uses Cinnamon theme instead of GTK theme, fixing styling in mixed theme mode.
+
+## 1.2.1 - 2026-01-27
 
 ### Fixed
 - Fixed Cinnamon Spices structure (info.json, README.md at root, applet files in files/UUID/).
