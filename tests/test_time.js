@@ -104,8 +104,41 @@ function testParsingMatrix() {
   for (const c of failCases) _runFailCase(c);
 }
 
+function testFormatCountdown() {
+  const nowMs = 1000000000000;
+  const make = (sec) => new Date(nowMs + sec * 1000);
+
+  const cases = [
+    // Past / zero → empty
+    { sec: -1,  expected: "" },
+    { sec: 0,   expected: "" },
+    // Seconds only (< 60s)
+    { sec: 1,   expected: "1s" },
+    { sec: 30,  expected: "30s" },
+    { sec: 59,  expected: "59s" },
+    // 1 minute boundary (shows Xm Ys while < 2m)
+    { sec: 60,  expected: "1m" },
+    { sec: 90,  expected: "1m 30s" },
+    { sec: 119, expected: "1m 59s" },
+    // 2+ minutes → just minutes
+    { sec: 120, expected: "2m" },
+    { sec: 300, expected: "5m" },
+    { sec: 3599, expected: "59m" },
+    // Hours
+    { sec: 3600, expected: "1h" },
+    { sec: 3660, expected: "1h 1m" },
+    { sec: 7200, expected: "2h" },
+    { sec: 7500, expected: "2h 5m" },
+  ];
+
+  for (const c of cases) {
+    const result = Time.formatCountdown(make(c.sec), nowMs);
+    eq(result, c.expected, `sec=${c.sec}`);
+  }
+}
+
 function main() {
-  const tests = [testParsingMatrix];
+  const tests = [testParsingMatrix, testFormatCountdown];
 
   for (const t of tests) t();
   print(`ok (${tests.length} tests)`);
