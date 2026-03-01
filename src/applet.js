@@ -209,12 +209,14 @@ QuickAlarmApplet.prototype = {
     this._soundMode = "chime";
     this._ringSeconds = 10;
     this._fullscreenNotification = true;
+    this._showCountdown = false;
     this._openShortcut = "";
     this._openHotkeyName = `${metadata.uuid}-open-${instanceId}`;
     this._activeSoundTimers = new Set();
     this._activeAudioPids = new Set();
     this._blinkTimerId = 0;
     this._ringEndTimerId = 0;
+    this._countdownTimerId = 0;
     this._isRinging = false;
     this._ringToken = 0;
     this._panelState = "idle";
@@ -224,6 +226,7 @@ QuickAlarmApplet.prototype = {
     this.settings.bind("soundMode", "_soundMode");
     this.settings.bind("ringSeconds", "_ringSeconds");
     this.settings.bind("fullscreenNotification", "_fullscreenNotification");
+    this.settings.bind("showCountdown", "_showCountdown", () => this._render());
     this.settings.bind("openShortcut", "_openShortcut", () => this._registerOpenHotkey());
 
     this.setAllowedLayout(Applet.AllowedLayout.BOTH);
@@ -401,6 +404,8 @@ QuickAlarmApplet.prototype = {
     }
     if (this._ringEndTimerId) GLib.source_remove(this._ringEndTimerId);
     this._ringEndTimerId = 0;
+    if (this._countdownTimerId) GLib.source_remove(this._countdownTimerId);
+    this._countdownTimerId = 0;
     this._stopBlinking();
     this.settings.finalize();
   },
@@ -656,6 +661,43 @@ QuickAlarmApplet.prototype = {
     }
   },
 
+  _stopCountdown() {
+    if (this._countdownTimerId) {
+      GLib.source_remove(this._countdownTimerId);
+      this._countdownTimerId = 0;
+    }
+    this.set_applet_label("");
+  },
+
+  _updateCountdownLabel(alarm) {
+    try {
+      const text = Time.formatCountdown(alarm.due, Date.now());
+      this.set_applet_label(text || "");
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  _startCountdown(alarm) {
+    this._stopCountdown();
+    this._updateCountdownLabel(alarm);
+    this._countdownTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+      if (!this._showCountdown) {
+        this._countdownTimerId = 0;
+        this.set_applet_label("");
+        return GLib.SOURCE_REMOVE;
+      }
+      const alarms = this._service ? this._service.list() : [];
+      if (alarms.length === 0) {
+        this._countdownTimerId = 0;
+        this.set_applet_label("");
+        return GLib.SOURCE_REMOVE;
+      }
+      this._updateCountdownLabel(alarms[0]);
+      return GLib.SOURCE_CONTINUE;
+    });
+  },
+
   _render() {
     this._listSection.removeAll();
     const alarms = this._service.list();
@@ -663,14 +705,18 @@ QuickAlarmApplet.prototype = {
     if (alarms.length === 0) {
       const emptyItem = new PopupMenu.PopupMenuItem(this._("No alarms queued"), { reactive: false });
       this._listSection.addMenuItem(emptyItem);
-      this.set_applet_label("");
+      this._stopCountdown();
       this.set_applet_tooltip(this._("Quick Alarm"));
       this._refreshPanelState();
       return;
     }
 
     const next = alarms[0];
-    this.set_applet_label("");
+    if (this._showCountdown) {
+      this._startCountdown(next);
+    } else {
+      this._stopCountdown();
+    }
     this.set_applet_tooltip(`${Time.formatTime(next.due, next.showSeconds)} ${next.label || ""}`.trim());
     this._refreshPanelState();
 

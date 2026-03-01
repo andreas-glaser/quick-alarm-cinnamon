@@ -5,6 +5,11 @@
 ### Added
 - No changes yet.
 
+## 1.3.0 - 2026-03-01
+
+### Added
+- Panel countdown: optionally show remaining time beside the applet icon (disabled by default, toggle in settings).
+
 ## 1.2.2 - 2026-01-28
 
 ### Fixed
