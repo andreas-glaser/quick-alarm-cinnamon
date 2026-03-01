@@ -37,6 +37,7 @@ Restart Cinnamon (Alt+F2 → `r`), then add the applet from:
 Panel Settings → Applets
 
 ## Settings
+- **Show remaining time**: display countdown beside the panel icon (default: off)
 - **Fullscreen notification**: show fullscreen overlay when alarm fires (default: on)
 - **Alarm sound mode**: chime once, or ring for a duration
 - **Ring duration**: how long "ring" mode plays sounds
