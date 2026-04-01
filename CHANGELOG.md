@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Custom panel icon: optionally pick any icon file or theme icon name (disabled by default, toggle in settings). Suggested by [@SethMusker](https://github.com/SethMusker) in [#4](https://github.com/andreas-glaser/quick-alarm-cinnamon/issues/4).
 - Label-first input for relative alarms (e.g. `TEA 10 seconds`, `Meeting in 5m`).
 
 ### Fixed

@@ -39,6 +39,7 @@ Panel Settings → Applets
 
 ## Settings
 - **Show remaining time**: display countdown beside the panel icon (default: off)
+- **Use a custom icon**: replace the default alarm icon with any icon file or theme icon name (default: off)
 - **Fullscreen notification**: show fullscreen overlay when alarm fires (default: on)
 - **Alarm sound mode**: chime once, or ring for a duration
 - **Ring duration**: how long "ring" mode plays sounds

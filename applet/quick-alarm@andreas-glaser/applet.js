@@ -9,6 +9,7 @@ const GLib = imports.gi.GLib;
 const AppletManager = imports.ui.appletManager;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
+const Gtk = imports.gi.Gtk;
 const Gettext = imports.gettext;
 
 let APPLET_PATH = null;
@@ -17,6 +18,7 @@ let Time = null;
 let TimeAgo = null;
 let EntryKeys = null;
 let Hotkeys = null;
+let Icon = null;
 
 function _spawnWithExitCallback(argv, onExit) {
   const pid = Util.spawn(argv);
@@ -107,11 +109,35 @@ QuickAlarmApplet.prototype = {
   _updatePanelIconSize() {
     try {
       if (!this._applet_icon) return;
-      const base = this.getPanelIconSize(St.IconType.SYMBOLIC);
+      const type = this._iconIsSymbolic ? St.IconType.SYMBOLIC : St.IconType.FULLCOLOR;
+      const base = this.getPanelIconSize(type);
       this._applet_icon.set_icon_size(Math.round(base * 1.3));
     } catch (e) {
       // ignore
     }
+  },
+
+  _updateIcon() {
+    const resolved = Icon.resolveIcon(this._useCustomIcon, this._customIcon, {
+      isAbsolutePath: (p) => GLib.path_is_absolute(p),
+      fileExists: (p) => GLib.file_test(p, GLib.FileTest.EXISTS),
+      themeHasIcon: (n) => Gtk.IconTheme.get_default().has_icon(n),
+    });
+    try {
+      const methods = {
+        symbolic_name: "set_applet_icon_symbolic_name",
+        name: "set_applet_icon_name",
+        symbolic_path: "set_applet_icon_symbolic_path",
+        path: "set_applet_icon_path",
+      };
+      this[methods[resolved.method]](resolved.value);
+      this._iconIsSymbolic = resolved.method.indexOf("symbolic") !== -1;
+    } catch (e) {
+      global.logWarning("quick-alarm: could not load icon: " + e);
+      this.set_applet_icon_symbolic_name("alarm-symbolic");
+      this._iconIsSymbolic = true;
+    }
+    this._updatePanelIconSize();
   },
 
   _applyPanelIconStyle() {
@@ -221,6 +247,9 @@ QuickAlarmApplet.prototype = {
     this._ringToken = 0;
     this._panelState = "idle";
     this._fullscreenOverlay = null;
+    this._useCustomIcon = false;
+    this._customIcon = "alarm-symbolic";
+    this._iconIsSymbolic = true;
 
     this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
     this.settings.bind("soundMode", "_soundMode");
@@ -228,10 +257,11 @@ QuickAlarmApplet.prototype = {
     this.settings.bind("fullscreenNotification", "_fullscreenNotification");
     this.settings.bind("showCountdown", "_showCountdown", () => this._render());
     this.settings.bind("openShortcut", "_openShortcut", () => this._registerOpenHotkey());
+    this.settings.bind("useCustomIcon", "_useCustomIcon", () => this._updateIcon());
+    this.settings.bind("customIcon", "_customIcon", () => this._updateIcon());
 
     this.setAllowedLayout(Applet.AllowedLayout.BOTH);
-    this.set_applet_icon_symbolic_name("alarm-symbolic");
-    this._updatePanelIconSize();
+    this._updateIcon();
     this.set_applet_label("");
     this.set_applet_tooltip(this._("Quick Alarm"));
     this._applyPanelIconStyle();
@@ -764,5 +794,6 @@ function main(metadata, orientation, panelHeight, instanceId) {
   TimeAgo = imports.lib.timeAgo;
   EntryKeys = imports.lib.entryKeys;
   Hotkeys = imports.lib.hotkeys;
+  Icon = imports.lib.icon;
   return new QuickAlarmApplet(metadata, orientation, panelHeight, instanceId);
 }
