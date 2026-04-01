@@ -3,7 +3,10 @@
 ## Unreleased
 
 ### Added
-- No changes yet.
+- Label-first input for relative alarms (e.g. `TEA 10 seconds`, `Meeting in 5m`).
+
+### Fixed
+- Label capitalization is now preserved as entered (was being lowercased for relative alarms). Reported by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8471](https://github.com/linuxmint/cinnamon-spices-applets/issues/8471).
 
 ## 1.3.0 - 2026-03-01
 

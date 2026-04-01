@@ -14,6 +14,7 @@ Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, 
 - `in 10m tea`
 - `after 5m - stretch`
 - `5 seconds`
+- `Stretch 30m`
 - `11:59am claude`
 - `claude at 11:59 am`
 - `tomorrow 11:30 - reset`

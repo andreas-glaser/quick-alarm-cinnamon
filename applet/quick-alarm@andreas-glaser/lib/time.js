@@ -58,10 +58,15 @@ function _parseAbsoluteTime(part) {
 }
 
 function _parseRelative(spec) {
-  const s = spec.trim().toLowerCase();
+  const orig = spec.trim();
+  const s = orig.toLowerCase();
   let rest = s;
+  let restOrig = orig;
   const m = s.match(/^(in|after)\s+(.+)$/);
-  if (m) rest = m[2].trim();
+  if (m) {
+    rest = m[2].trim();
+    restOrig = orig.slice(orig.length - rest.length);
+  }
 
   // Important: order longest -> shortest so "seconds" doesn't match just "s".
   const re = /^(\d+)\s*(hours?|hrs?|hr|h|minutes?|mins?|min|m|seconds?|secs?|sec|s)\s*/;
@@ -84,12 +89,13 @@ function _parseRelative(spec) {
       totalMs += value * 1000;
     }
     rest = rest.slice(r[0].length);
+    restOrig = restOrig.slice(r[0].length);
   }
 
   if (!matchedAny) return null;
   if (totalMs <= 0) return null;
 
-  return { delayMs: totalMs, label: rest.trim(), showSeconds };
+  return { delayMs: totalMs, label: restOrig.trim(), showSeconds };
 }
 
 function parseAlarmSpec(input, now = new Date(), t = null) {
@@ -123,7 +129,21 @@ function parseAlarmSpec(input, now = new Date(), t = null) {
     spec = _normalizeSpec(dayMatch[2]);
   }
 
-  const rel = _parseRelative(spec);
+  let rel = _parseRelative(spec);
+  if (!rel) {
+    // Support label-first relative input: "TEA 10 seconds", "Meeting in 5m"
+    const words = spec.split(/\s+/);
+    for (let i = 1; i < words.length; i++) {
+      const candidate = words.slice(i).join(" ");
+      const tryRel = _parseRelative(candidate);
+      if (tryRel) {
+        const prefix = words.slice(0, i).join(" ");
+        const combined = [prefix, tryRel.label].filter(Boolean).join(" ");
+        rel = { delayMs: tryRel.delayMs, label: combined, showSeconds: tryRel.showSeconds };
+        break;
+      }
+    }
+  }
   if (rel) {
     return {
       ok: true,

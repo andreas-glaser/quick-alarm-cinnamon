@@ -87,6 +87,17 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:00:05", input: ", 11am", label: "", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: "at 11am tea", label: "tea", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: "for 10 seconds tea", label: "tea", showSeconds: true, dueNearMs: 10 * 1000 },
+
+    // Case preservation in labels
+    { now: "2025-01-01T10:00:05", input: "in 10m Tea", label: "Tea", showSeconds: true, dueNearMs: 10 * 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "after 5m - Stretch Break", label: "Stretch Break", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "5m IMPORTANT Meeting", label: "IMPORTANT Meeting", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
+
+    // Label-first relative input
+    { now: "2025-01-01T10:00:05", input: "TEA 10 seconds", label: "TEA", showSeconds: true, dueNearMs: 10 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "Meeting in 5m", label: "Meeting", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "TEA PARTY in 5m", label: "TEA PARTY", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "Stretch 1h 15m", label: "Stretch", showSeconds: true, dueNearMs: (60 + 15) * 60 * 1000 },
   ];
 
   const failCases = [
