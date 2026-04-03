@@ -16,6 +16,7 @@ let APPLET_PATH = null;
 let AlarmService = null;
 let Time = null;
 let TimeAgo = null;
+let AlarmText = null;
 let EntryKeys = null;
 let Hotkeys = null;
 let Icon = null;
@@ -449,7 +450,7 @@ QuickAlarmApplet.prototype = {
         return;
       }
 
-      const label = parsed.label || `Alarm ${Time.formatTime(parsed.due, parsed.showSeconds)}`;
+      const label = AlarmText.getStoredLabel(parsed.label);
       this._service.add(parsed.due, label, parsed.showSeconds);
       this._setEntryText("");
       this._errorLabel.text = "";
@@ -473,7 +474,7 @@ QuickAlarmApplet.prototype = {
       this._showFullscreenOverlay(alarm);
     } else {
       const title = this._("Alarm");
-      const body = alarm.label || `Alarm ${Time.formatTime(alarm.due, alarm.showSeconds)}`;
+      const body = AlarmText.getAlarmNotificationBody(alarm);
 
       const notification = new MessageTray.Notification(this._notificationSource, title, body);
       notification.setTransient(false);
@@ -792,6 +793,7 @@ function main(metadata, orientation, panelHeight, instanceId) {
   AlarmService = imports.services.alarmService.AlarmService;
   Time = imports.lib.time;
   TimeAgo = imports.lib.timeAgo;
+  AlarmText = imports.lib.alarmText;
   EntryKeys = imports.lib.entryKeys;
   Hotkeys = imports.lib.hotkeys;
   Icon = imports.lib.icon;
