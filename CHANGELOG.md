@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 - 2026-04-03
 
 ### Added
 - Custom panel icon: optionally pick any icon file or theme icon name (disabled by default, toggle in settings). Suggested by [@SethMusker](https://github.com/SethMusker) in [#4](https://github.com/andreas-glaser/quick-alarm-cinnamon/issues/4).
