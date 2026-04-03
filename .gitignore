@@ -9,6 +9,7 @@ Thumbs.db
 # IDEs
 .idea/
 .vscode/
+.codex
 *.iml
 
 # Logs

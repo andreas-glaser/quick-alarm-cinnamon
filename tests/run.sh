@@ -7,7 +7,9 @@ if ! command -v gjs >/dev/null 2>&1; then
 fi
 
 gjs tests/test_time.js
+gjs tests/test_alarmText.js
 gjs tests/test_alarmReconcile.js
 gjs tests/test_alarmService.js
 gjs tests/test_entryKeys.js
 gjs tests/test_hotkeys.js
+gjs tests/test_icon.js

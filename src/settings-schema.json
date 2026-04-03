@@ -8,6 +8,19 @@
     "default": false,
     "description": "Show remaining time beside icon"
   },
+  "useCustomIcon": {
+    "type": "switch",
+    "default": false,
+    "description": "Use a custom icon"
+  },
+  "customIcon": {
+    "type": "iconfilechooser",
+    "default": "alarm-symbolic",
+    "description": "Panel icon",
+    "default_icon": "alarm-symbolic",
+    "tooltip": "Select an icon file or type a theme icon name",
+    "dependency": "useCustomIcon"
+  },
   "sectionNotification": {
     "type": "section",
     "description": "Notification"

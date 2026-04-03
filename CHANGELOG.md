@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 - 2026-04-03
 
 ### Added
-- No changes yet.
+- Custom panel icon: optionally pick any icon file or theme icon name (disabled by default, toggle in settings). Suggested by [@SethMusker](https://github.com/SethMusker) in [#4](https://github.com/andreas-glaser/quick-alarm-cinnamon/issues/4).
+- Label-first input for relative alarms (e.g. `TEA 10 seconds`, `Meeting in 5m`).
+
+### Fixed
+- Label capitalization is now preserved as entered (was being lowercased for relative alarms). Reported by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8471](https://github.com/linuxmint/cinnamon-spices-applets/issues/8471).
+- Unlabeled alarms no longer store `Alarm <time>` as their label, avoiding duplicated time text in the queue and fullscreen alarm UI. Reported by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8471](https://github.com/linuxmint/cinnamon-spices-applets/issues/8471).
 
 ## 1.3.0 - 2026-03-01
 
