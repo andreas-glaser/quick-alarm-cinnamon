@@ -13,8 +13,7 @@ function eq(a, b, msg) {
 function makeEnv(overrides) {
   return Object.assign({
     isAbsolutePath: () => false,
-    fileExists: () => false,
-    themeHasIcon: () => false,
+    themeLookupIcon: () => null,
   }, overrides || {});
 }
 
@@ -39,7 +38,6 @@ function testDefaultWhenValueNull() {
 function testAbsolutePathFullcolor() {
   const r = Icon.resolveIcon(true, "/usr/share/icons/my-icon.png", makeEnv({
     isAbsolutePath: () => true,
-    fileExists: () => true,
   }));
   eq(r.method, "path");
   eq(r.value, "/usr/share/icons/my-icon.png");
@@ -48,24 +46,22 @@ function testAbsolutePathFullcolor() {
 function testAbsolutePathSymbolic() {
   const r = Icon.resolveIcon(true, "/usr/share/icons/alarm-symbolic.svg", makeEnv({
     isAbsolutePath: () => true,
-    fileExists: () => true,
   }));
   eq(r.method, "symbolic_path");
   eq(r.value, "/usr/share/icons/alarm-symbolic.svg");
 }
 
-function testAbsolutePathFileMissing() {
+function testAbsolutePathDoesNotPrecheckFile() {
   const r = Icon.resolveIcon(true, "/no/such/file.png", makeEnv({
     isAbsolutePath: () => true,
-    fileExists: () => false,
   }));
-  eq(r.method, "symbolic_name");
-  eq(r.value, "alarm-symbolic");
+  eq(r.method, "path");
+  eq(r.value, "/no/such/file.png");
 }
 
 function testThemeIconFullcolor() {
   const r = Icon.resolveIcon(true, "bell", makeEnv({
-    themeHasIcon: () => true,
+    themeLookupIcon: () => ({}),
   }));
   eq(r.method, "name");
   eq(r.value, "bell");
@@ -73,7 +69,7 @@ function testThemeIconFullcolor() {
 
 function testThemeIconSymbolic() {
   const r = Icon.resolveIcon(true, "bell-symbolic", makeEnv({
-    themeHasIcon: () => true,
+    themeLookupIcon: () => ({}),
   }));
   eq(r.method, "symbolic_name");
   eq(r.value, "bell-symbolic");
@@ -81,7 +77,7 @@ function testThemeIconSymbolic() {
 
 function testThemeIconNotFound() {
   const r = Icon.resolveIcon(true, "nonexistent-icon", makeEnv({
-    themeHasIcon: () => false,
+    themeLookupIcon: () => null,
   }));
   eq(r.method, "symbolic_name");
   eq(r.value, "alarm-symbolic");
@@ -94,7 +90,7 @@ function main() {
     testDefaultWhenValueNull,
     testAbsolutePathFullcolor,
     testAbsolutePathSymbolic,
-    testAbsolutePathFileMissing,
+    testAbsolutePathDoesNotPrecheckFile,
     testThemeIconFullcolor,
     testThemeIconSymbolic,
     testThemeIconNotFound,

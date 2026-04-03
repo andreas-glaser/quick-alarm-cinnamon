@@ -121,8 +121,7 @@ QuickAlarmApplet.prototype = {
   _updateIcon() {
     const resolved = Icon.resolveIcon(this._useCustomIcon, this._customIcon, {
       isAbsolutePath: (p) => GLib.path_is_absolute(p),
-      fileExists: (p) => GLib.file_test(p, GLib.FileTest.EXISTS),
-      themeHasIcon: (n) => Gtk.IconTheme.get_default().has_icon(n),
+      themeLookupIcon: (n) => Gtk.IconTheme.get_default().lookup_icon(n, 16, 0),
     });
     try {
       const methods = {

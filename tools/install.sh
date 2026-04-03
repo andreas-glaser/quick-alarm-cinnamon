@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=tools/config.sh
 source "$(dirname "$0")/config.sh"
 
 "$REPO_ROOT/tools/build.sh"

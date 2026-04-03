@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Custom icon lookup now uses Cinnamon theme icon lookup instead of `has_icon()`, and absolute icon paths are passed through directly so Cinnamon can handle missing-file fallback itself.
+
 ## 1.4.0 - 2026-04-03
 
 ### Added
