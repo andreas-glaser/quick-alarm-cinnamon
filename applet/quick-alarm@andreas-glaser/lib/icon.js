@@ -5,8 +5,7 @@
  * @param {string} value - The icon setting value (file path or theme icon name)
  * @param {object} env - Environment functions for file/theme checks:
  *   @param {function} env.isAbsolutePath - (path) => boolean
- *   @param {function} env.fileExists - (path) => boolean
- *   @param {function} env.themeHasIcon - (name) => boolean
+ *   @param {function} env.themeLookupIcon - (name) => object|null
  * @returns {{ method: string, value: string }}
  *   method is one of: "symbolic_name", "name", "symbolic_path", "path"
  */
@@ -18,11 +17,10 @@ function resolveIcon(useCustom, value, env) {
   var isSymbolic = value.indexOf("-symbolic") !== -1;
 
   if (env.isAbsolutePath(value)) {
-    if (!env.fileExists(value)) return DEFAULT;
     return { method: isSymbolic ? "symbolic_path" : "path", value: value };
   }
 
-  if (env.themeHasIcon(value)) {
+  if (env.themeLookupIcon(value)) {
     return { method: isSymbolic ? "symbolic_name" : "name", value: value };
   }
 

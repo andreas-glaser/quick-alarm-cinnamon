@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=tools/config.sh
 source "$(dirname "$0")/config.sh"
 
 usage() {
@@ -111,4 +112,3 @@ if [[ "$do_push" == "1" ]]; then
 else
   echo "Skipping push (--no-push)."
 fi
-
