@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.2 - 2026-04-10
+
+### Added
+- Hungarian translation (hu.po), sourced from Cinnamon Spices.
+
+### Fixed
+- Label-first input starting with "Alarm", "Reminder", or "Timer" no longer strips those words from the label (e.g. `Alarm in 10s` now keeps "Alarm" as the label). Reported by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8471](https://github.com/linuxmint/cinnamon-spices-applets/issues/8471).
+
 ## 1.4.1 - 2026-04-03
 
 ### Fixed

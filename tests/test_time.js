@@ -81,8 +81,8 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:00:05", input: "1h 15m tea", label: "tea", showSeconds: true, dueNearMs: (60 + 15) * 60 * 1000 },
 
     // Natural language prefixes
-    { now: "2025-01-01T10:00:05", input: "alarm in 1 minute", label: "", showSeconds: true, dueNearMs: 60 * 1000 },
-    { now: "2025-01-01T10:00:05", input: "set alarm in 1 minute", label: "", showSeconds: true, dueNearMs: 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "alarm in 1 minute", label: "alarm", showSeconds: true, dueNearMs: 60 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "set alarm in 1 minute", label: "alarm", showSeconds: true, dueNearMs: 60 * 1000 },
     { now: "2025-01-01T10:00:05", input: "add reminder 11am - reset", label: "reset", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: ", 11am", label: "", showSeconds: false, dueHHMM: "11:00" },
     { now: "2025-01-01T10:00:05", input: "at 11am tea", label: "tea", showSeconds: false, dueHHMM: "11:00" },
@@ -98,6 +98,10 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:00:05", input: "Meeting in 5m", label: "Meeting", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
     { now: "2025-01-01T10:00:05", input: "TEA PARTY in 5m", label: "TEA PARTY", showSeconds: true, dueNearMs: 5 * 60 * 1000 },
     { now: "2025-01-01T10:00:05", input: "Stretch 1h 15m", label: "Stretch", showSeconds: true, dueNearMs: (60 + 15) * 60 * 1000 },
+
+    // "Alarm" as label in label-first input (reported in cinnamon-spices-applets#8471)
+    { now: "2025-01-01T10:00:05", input: "Alarm in 10s", label: "Alarm", showSeconds: true, dueNearMs: 10 * 1000 },
+    { now: "2025-01-01T10:00:05", input: "Alarm UPPERCASE in 10s", label: "Alarm UPPERCASE", showSeconds: true, dueNearMs: 10 * 1000 },
   ];
 
   const failCases = [

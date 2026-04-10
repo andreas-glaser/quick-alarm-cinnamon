@@ -21,10 +21,16 @@ function _splitLabel(raw) {
   return { spec: m[1].trim(), label: m[2].trim() };
 }
 
-function _normalizeSpec(raw) {
+function _lightNormalizeSpec(raw) {
   return raw
     .replace(/^[\s,;:.!?]+/, "")
     .replace(/^(set|add|new)\s+/i, "")
+    .replace(/^(at|for)\s+/i, "")
+    .trim();
+}
+
+function _normalizeSpec(raw) {
+  return _lightNormalizeSpec(raw)
     .replace(/^(an?\s+)?(alarm|reminder|timer)\s+/i, "")
     .replace(/^(at|for)\s+/i, "")
     .trim();
@@ -129,20 +135,30 @@ function parseAlarmSpec(input, now = new Date(), t = null) {
     spec = _normalizeSpec(dayMatch[2]);
   }
 
-  let rel = _parseRelative(spec);
-  if (!rel) {
+  function _tryRelativeWithLabelFirst(s) {
+    let r = _parseRelative(s);
+    if (r) return r;
     // Support label-first relative input: "TEA 10 seconds", "Meeting in 5m"
-    const words = spec.split(/\s+/);
+    const words = s.split(/\s+/);
     for (let i = 1; i < words.length; i++) {
       const candidate = words.slice(i).join(" ");
       const tryRel = _parseRelative(candidate);
       if (tryRel) {
         const prefix = words.slice(0, i).join(" ");
         const combined = [prefix, tryRel.label].filter(Boolean).join(" ");
-        rel = { delayMs: tryRel.delayMs, label: combined, showSeconds: tryRel.showSeconds };
-        break;
+        return { delayMs: tryRel.delayMs, label: combined, showSeconds: tryRel.showSeconds };
       }
     }
+    return null;
+  }
+
+  // Try light-normalized spec first (keeps "alarm"/"reminder"/"timer" intact)
+  // so label-first inputs like "Alarm in 10s" preserve the full label.
+  // Fall back to fully normalized spec for command-style inputs like "add alarm 10m".
+  const lightSpec = dayHint ? spec : _lightNormalizeSpec(split.spec);
+  let rel = _tryRelativeWithLabelFirst(lightSpec);
+  if (!rel && lightSpec !== spec) {
+    rel = _tryRelativeWithLabelFirst(spec);
   }
   if (rel) {
     return {
