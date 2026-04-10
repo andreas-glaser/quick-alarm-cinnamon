@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.2 - 2026-04-10
 
 ### Added
 - Hungarian translation (hu.po), sourced from Cinnamon Spices.
