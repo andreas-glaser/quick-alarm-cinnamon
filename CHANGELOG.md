@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 - 2026-08-28
 
 ### Added
 - Alarm queues now survive logout, Cinnamon restarts, and system reboots. Requested by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8990](https://github.com/linuxmint/cinnamon-spices-applets/issues/8990).
