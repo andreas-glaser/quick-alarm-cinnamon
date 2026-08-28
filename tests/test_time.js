@@ -113,6 +113,8 @@ function testParsingMatrix() {
     { now: "2025-01-01T10:00:00", input: "in 0s" },
     { now: "2025-01-01T10:00:00", input: "in -5m" },
     { now: "2025-01-01T10:00:00", input: "in 5x" },
+    { now: "2025-01-01T10:00:00", input: "999999999999999999h" },
+    { now: "2025-01-01T10:00:00", input: "1h " + "x".repeat(4096) },
   ];
 
   for (const c of okCases) _runOkCase(c);

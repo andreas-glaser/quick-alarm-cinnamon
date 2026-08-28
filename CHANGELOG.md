@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Alarm queues now survive logout, Cinnamon restarts, and system reboots. Requested by [@sphh](https://github.com/sphh) in [linuxmint/cinnamon-spices-applets#8990](https://github.com/linuxmint/cinnamon-spices-applets/issues/8990).
+
+### Fixed
+- Late timer callbacks now honor the missed-alarm grace window after suspend or event-loop delays.
+- Multiple fullscreen alarms that fire together are shown sequentially instead of overwriting each other.
+- Multiple missed alarms are summarized in one notification instead of flooding the notification tray.
+- Alarm audio uses owned subprocesses and rate-limited retries, preventing stale-PID termination and rapid respawn loops.
+- Invalid oversized durations and excessive queue input are rejected safely.
+
+### Security
+- Hardened release workflows against shell injection and pinned external GitHub Actions.
+- Added path validation around destructive build and publishing operations.
+
 ## 1.4.2 - 2026-04-10
 
 ### Added

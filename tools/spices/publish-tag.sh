@@ -45,6 +45,29 @@ if [[ -z "${tag:-}" ]]; then
   exit 2
 fi
 
+if [[ "$tag" != v* ]]; then
+  tag="v${tag}"
+fi
+if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Tag must follow vX.Y.Z format. Got: $tag" >&2
+  exit 2
+fi
+
+if ! tag_commit="$(git -C "$REPO_ROOT" rev-parse --verify "refs/tags/${tag}^{commit}" 2>/dev/null)"; then
+  echo "Tag does not exist locally: $tag" >&2
+  exit 2
+fi
+head_commit="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+if [[ "$head_commit" != "$tag_commit" ]]; then
+  echo "Refusing to publish $tag from a different commit." >&2
+  echo "Check out the tag first: git checkout $tag" >&2
+  exit 2
+fi
+if [[ -n "$(git -C "$REPO_ROOT" status --porcelain)" ]]; then
+  echo "Refusing to publish from a dirty worktree." >&2
+  exit 2
+fi
+
 if [[ -z "${GH_TOKEN:-}" ]]; then
   echo "Missing GH_TOKEN (GitHub token/PAT)" >&2
   exit 2
@@ -60,25 +83,50 @@ spices_upstream_repo="${SPICES_UPSTREAM_REPO:-linuxmint/cinnamon-spices-applets}
 spices_base_branch="${SPICES_BASE_BRANCH:-master}"
 spices_branch_prefix="${SPICES_BRANCH_PREFIX:-quick-alarm-release-}"
 
+if [[ ! "$spices_fork_repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+  echo "Invalid SPICES_FORK_REPO: $spices_fork_repo" >&2
+  exit 2
+fi
+if [[ ! "$spices_upstream_repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+  echo "Invalid SPICES_UPSTREAM_REPO: $spices_upstream_repo" >&2
+  exit 2
+fi
+if ! git check-ref-format --branch "$spices_base_branch" >/dev/null 2>&1; then
+  echo "Invalid SPICES_BASE_BRANCH: $spices_base_branch" >&2
+  exit 2
+fi
+if ! git check-ref-format --branch "${spices_branch_prefix}v0.0.0" >/dev/null 2>&1; then
+  echo "Invalid SPICES_BRANCH_PREFIX: $spices_branch_prefix" >&2
+  exit 2
+fi
+
+for required_command in git gh awk; do
+  if ! command -v "$required_command" >/dev/null 2>&1; then
+    echo "Missing required command: $required_command" >&2
+    exit 2
+  fi
+done
+
 export GIT_TERMINAL_PROMPT=0
 
 "$REPO_ROOT/tools/build.sh"
+if [[ -n "$(git -C "$REPO_ROOT" status --porcelain)" ]]; then
+  echo "Build output differs from the tagged source. Run tools/build.sh before tagging." >&2
+  exit 2
+fi
 
 tmp_dir="$(mktemp -d)"
-cleanup() { rm -rf "$tmp_dir"; }
+cleanup() { rm -rf -- "$tmp_dir"; }
 trap cleanup EXIT
 
 spices_dir="$tmp_dir/cinnamon-spices-applets"
-git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${spices_fork_repo}.git" "$spices_dir" >/dev/null
+gh repo clone "$spices_fork_repo" "$spices_dir" -- --depth 1 >/dev/null
+git -C "$spices_dir" config credential.helper '!gh auth git-credential'
 
 if ! git -C "$spices_dir" remote get-url upstream >/dev/null 2>&1; then
   git -C "$spices_dir" remote add upstream "https://github.com/${spices_upstream_repo}.git"
 fi
 git -C "$spices_dir" fetch upstream "$spices_base_branch" --depth 1
-
-if [[ "$tag" != v* ]]; then
-  tag="v${tag}"
-fi
 
 # Extract changelog for this version (same logic as release.yml)
 version_num="${tag#v}"
@@ -91,6 +139,10 @@ changelog_section="$(
     found { print }
   ' "$REPO_ROOT/CHANGELOG.md"
 )"
+if [[ -z "${changelog_section//[[:space:]]/}" ]]; then
+  echo "No changelog entry found for $version_num" >&2
+  exit 2
+fi
 
 safe_tag="${tag//\//-}"
 fork_owner="${spices_fork_repo%%/*}"
@@ -125,12 +177,26 @@ else
   branch="${spices_branch_prefix}${safe_tag}"
 fi
 
+if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
+  echo "Invalid generated branch name: $branch" >&2
+  exit 2
+fi
+
+remote_branch_oid="$(
+  git -C "$spices_dir" ls-remote --heads origin "refs/heads/$branch" \
+    | awk 'NR == 1 { print $1 }'
+)"
+
 git -C "$spices_dir" checkout -B "$branch" "upstream/${spices_base_branch}"
 
 spices_applet_dir="$spices_dir/$UUID"
 dst_dir="$spices_applet_dir/files/$UUID"
 
-rm -rf "$spices_applet_dir"
+case "$spices_applet_dir" in
+  "$spices_dir/$PROJECT_UUID") ;;
+  *) echo "Refusing to replace unsafe Spices path: $spices_applet_dir" >&2; exit 2 ;;
+esac
+rm -rf -- "$spices_applet_dir"
 mkdir -p "$dst_dir"
 
 # Copy applet files to files/<UUID>/
@@ -145,39 +211,9 @@ cat >"$spices_applet_dir/info.json" <<EOF
 }
 EOF
 
-# Create README.md at root
-cat >"$spices_applet_dir/README.md" <<'READMEEOF'
-# Quick Alarm
-
-Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, press Enter.
-
-## Usage
-
-1. Click the applet (alarm icon) in your panel.
-2. Type an alarm time (optionally with a label).
-3. Press Enter (or Ctrl+Enter to add another without closing).
-
-### Examples
-
-- `in 10m tea`
-- `after 5m - stretch`
-- `5 seconds`
-- `11:59am meeting`
-- `tomorrow 11:30 standup`
-
-### What happens when it fires
-
-- A fullscreen overlay appears showing the time, label, and how long ago it fired.
-- Plays an alarm sound.
-- Click anywhere, press Escape/Enter/Space, or click Dismiss to close.
-
-## Settings
-
-- **Fullscreen notification**: show fullscreen overlay when alarm fires (default: on)
-- **Alarm sound mode**: chime once, or ring for a duration
-- **Ring duration**: how long "ring" mode plays sounds
-- **Open shortcut**: global hotkey to open the applet menu (default: Super+Alt+A)
-READMEEOF
+# Keep the published README in sync while adjusting its screenshot path.
+sed 's#](docs/assets/screenshot.png)#](screenshot.png)#' \
+  "$REPO_ROOT/README.md" >"$spices_applet_dir/README.md"
 
 # Copy screenshot
 screenshot_src="$REPO_ROOT/docs/assets/screenshot.png"
@@ -191,7 +227,8 @@ if git -C "$spices_dir" diff --cached --quiet; then
 else
   git -C "$spices_dir" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
     commit -m "Quick Alarm ${tag}"
-  git -C "$spices_dir" push -u origin "$branch" --force
+  git -C "$spices_dir" push -u origin "$branch" \
+    "--force-with-lease=${branch}:${remote_branch_oid}"
 fi
 
 # Build PR body with changelog

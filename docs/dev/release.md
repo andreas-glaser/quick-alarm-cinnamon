@@ -6,7 +6,7 @@
 
 ## GitHub Releases
 
-Push a tag like `v1.0.0` to create a GitHub Release with the `dist/*.zip` attached. Manual runs also accept `1.0.0` (it will be normalized to `v1.0.0`).
+Push an existing tag like `v1.0.0` to create a GitHub Release with the `dist/*.zip` attached. Manual runs also accept `1.0.0` (it will be normalized to `v1.0.0`) but require that tag to already exist.
 
 ## Automated Spices PRs on tags
 
@@ -53,8 +53,11 @@ SPICES_REPO_DIR=/path/to/cinnamon-spices-applets SPICES_BRANCH=my-branch tools/s
 ```bash
 export GH_TOKEN=...
 export SPICES_FORK_REPO=andreas-glaser/cinnamon-spices-applets
+git checkout v1.2.3
 tools/spices/publish-tag.sh --tag v1.2.3
 ```
+
+The local publishing command requires `git`, `gh`, and a clean worktree checked out at the requested tag.
 
 ## Versioning
 

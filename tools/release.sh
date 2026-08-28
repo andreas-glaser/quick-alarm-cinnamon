@@ -8,7 +8,7 @@ source "$(dirname "$0")/config.sh"
 mkdir -p "$DIST_DIR"
 
 archive="$DIST_DIR/${UUID}.zip"
-rm -f "$archive"
+rm -f -- "$archive"
 
 (cd "$REPO_ROOT/applet" && zip -r "$archive" "$UUID" >/dev/null)
 echo "Release archive: $archive"

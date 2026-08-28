@@ -41,6 +41,18 @@ function testBlankAccelRemovesOnly() {
   eq(calls[0][1], "hk");
 }
 
+function testNonStringAccelRemovesOnly() {
+  const calls = [];
+  const manager = {
+    removeHotKey: (name) => calls.push(["remove", name]),
+    addHotKey: () => calls.push(["add"]),
+  };
+  const r = Hotkeys.syncHotkey({ keybindingManager: manager, name: "hk", accel: { invalid: true } });
+  eq(r.added, false);
+  eq(calls.length, 1);
+  eq(calls[0][0], "remove");
+}
+
 function testRegistersAfterRemove() {
   const calls = [];
   const manager = {
@@ -109,6 +121,7 @@ function main() {
     testEmptyManagerNoop,
     testMissingNameNoop,
     testBlankAccelRemovesOnly,
+    testNonStringAccelRemovesOnly,
     testRegistersAfterRemove,
     testRemoveHotKeyFailureIsIgnored,
     testAddHotKeyFailureReported,
@@ -118,4 +131,3 @@ function main() {
 }
 
 main();
-

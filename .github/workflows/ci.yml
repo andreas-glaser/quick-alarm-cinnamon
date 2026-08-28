@@ -4,33 +4,48 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build-test-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gettext gjs zip
+          sudo apt-get install -y --no-install-recommends gettext gjs shellcheck unzip zip
 
-      - name: Validate JSON
+      - name: Static validation
         run: |
           python3 -m json.tool src/settings-schema.json >/dev/null
+          bash -n tests/run.sh tools/*.sh tools/spices/*.sh
+          shellcheck -x -e SC1091,SC2034 tests/run.sh tools/*.sh tools/spices/*.sh
+          for po_file in po/*.po; do
+            msgfmt --check --output-file=/dev/null "$po_file"
+          done
 
       - name: Build
-        run: tools/build.sh
+        run: |
+          tools/build.sh
+          if [[ -n "$(git status --porcelain -- applet/quick-alarm@andreas-glaser)" ]]; then
+            echo "Build output is not synchronized with src/." >&2
+            git status --short -- applet/quick-alarm@andreas-glaser
+            exit 1
+          fi
 
       - name: Tests
         run: tests/run.sh
 
       - name: Package
-        run: tools/release.sh
+        run: |
+          tools/release.sh
+          unzip -t dist/quick-alarm@andreas-glaser.zip
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: quick-alarm@andreas-glaser
           path: dist/*.zip
-

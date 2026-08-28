@@ -35,6 +35,12 @@ function testDefaultWhenValueNull() {
   eq(r.value, "alarm-symbolic");
 }
 
+function testDefaultWhenValueIsNotString() {
+  const r = Icon.resolveIcon(true, { path: "/tmp/icon.png" }, makeEnv());
+  eq(r.method, "symbolic_name");
+  eq(r.value, "alarm-symbolic");
+}
+
 function testAbsolutePathFullcolor() {
   const r = Icon.resolveIcon(true, "/usr/share/icons/my-icon.png", makeEnv({
     isAbsolutePath: () => true,
@@ -88,6 +94,7 @@ function main() {
     testDefaultWhenToggleOff,
     testDefaultWhenValueEmpty,
     testDefaultWhenValueNull,
+    testDefaultWhenValueIsNotString,
     testAbsolutePathFullcolor,
     testAbsolutePathSymbolic,
     testAbsolutePathDoesNotPrecheckFile,

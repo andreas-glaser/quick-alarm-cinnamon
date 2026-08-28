@@ -23,11 +23,14 @@ Queue alarms fast from your Cinnamon panel. Click the applet icon, type a time, 
 - A fullscreen overlay appears showing the time, label, and how long ago it fired.
 - Plays an alarm sound.
 - Click anywhere, press Escape/Enter/Space, or click Dismiss to close.
+- If several alarms fire together, fullscreen alarms are shown one at a time.
 
 ### Sleep / wake behavior
 If your computer wakes after an alarm time:
 - If it’s only slightly overdue, it fires immediately.
 - If it’s overdue by more than a short grace window, you get a “Missed alarm” notification (no sound) and it’s removed from the queue.
+
+Queued alarms are saved automatically and restored after logging in or rebooting. Restored overdue alarms follow the same grace-window behavior.
 
 ## Local Install (Linux Mint / Cinnamon)
 ```bash
