@@ -6,9 +6,23 @@ source "$(dirname "$0")/config.sh"
 
 "$REPO_ROOT/tools/build.sh"
 
-target="${CINNAMON_APPLETS_DIR:-$HOME/.local/share/cinnamon/applets}/$UUID"
+applets_dir="${CINNAMON_APPLETS_DIR:-$HOME/.local/share/cinnamon/applets}"
+if [[ "$applets_dir" != /* ]]; then
+  echo "CINNAMON_APPLETS_DIR must be an absolute path. Got: $applets_dir" >&2
+  exit 2
+fi
+applets_dir="$(realpath -m -- "$applets_dir")"
+if [[ "$applets_dir" == "/" ]]; then
+  echo "Refusing to install directly under the filesystem root." >&2
+  exit 2
+fi
+target="$applets_dir/$UUID"
+if [[ "$target" == "/" || "$(basename "$target")" != "$PROJECT_UUID" ]]; then
+  echo "Refusing to replace unsafe install path: $target" >&2
+  exit 2
+fi
 mkdir -p "$(dirname "$target")"
-rm -rf "$target"
+rm -rf -- "$target"
 cp -a "$APPLET_ROOT" "$target"
 
 if command -v msgfmt >/dev/null 2>&1 && [ -d "$REPO_ROOT/po" ]; then

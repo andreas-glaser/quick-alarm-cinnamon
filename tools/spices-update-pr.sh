@@ -59,22 +59,39 @@ if [[ -z "${spices_repo_dir:-}" ]]; then
   exit 2
 fi
 
+if ! git check-ref-format --branch "$spices_branch" >/dev/null 2>&1; then
+  echo "Invalid branch name: $spices_branch" >&2
+  exit 2
+fi
+if [[ ! "$spices_remote" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Invalid remote name: $spices_remote" >&2
+  exit 2
+fi
+
 "$REPO_ROOT/tools/build.sh"
 
 if ! git -C "$spices_repo_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Not a git repo: $spices_repo_dir" >&2
   exit 2
 fi
+spices_repo_dir="$(git -C "$spices_repo_dir" rev-parse --show-toplevel)"
 
 git -C "$spices_repo_dir" checkout "$spices_branch" >/dev/null
 
 src_dir="$APPLET_ROOT"
 dst_dir="$spices_repo_dir/$UUID/files/$UUID"
 
-rm -rf "$dst_dir"
+case "$dst_dir" in
+  "$spices_repo_dir/$PROJECT_UUID/files/$PROJECT_UUID") ;;
+  *) echo "Refusing to replace unsafe Spices path: $dst_dir" >&2; exit 2 ;;
+esac
+rm -rf -- "$dst_dir"
 mkdir -p "$(dirname "$dst_dir")"
 cp -a "$src_dir" "$dst_dir"
 find "$dst_dir" -type f -name '*.mo' -delete || true
+
+sed 's#](docs/assets/screenshot.png)#](screenshot.png)#' \
+  "$REPO_ROOT/README.md" >"$spices_repo_dir/$UUID/README.md"
 
 if [[ "$copy_screenshot" == "1" ]]; then
   screenshot_src="$REPO_ROOT/docs/assets/screenshot.png"

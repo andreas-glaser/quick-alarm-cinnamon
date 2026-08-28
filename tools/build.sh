@@ -4,7 +4,13 @@ set -euo pipefail
 # shellcheck source=tools/config.sh
 source "$(dirname "$0")/config.sh"
 
-rm -rf "$APPLET_ROOT"
+expected_applet_root="$REPO_ROOT/applet/$PROJECT_UUID"
+if [[ "$APPLET_ROOT" != "$expected_applet_root" || "$APPLET_ROOT" == "/" ]]; then
+  echo "Refusing to replace unsafe applet path: $APPLET_ROOT" >&2
+  exit 2
+fi
+
+rm -rf -- "$APPLET_ROOT"
 mkdir -p "$APPLET_ROOT"
 
 cp -a "$SRC_DIR/." "$APPLET_ROOT/"
