@@ -251,6 +251,7 @@ QuickAlarmApplet.prototype = {
     this._ringEndTimerId = 0;
     this._countdownTimerId = 0;
     this._fullscreenAgoTimerId = 0;
+    this._fullscreenLayoutIdleId = 0;
     this._nextAlarmIdleId = 0;
     this._missedAlarmIdleId = 0;
     this._isRinging = false;
@@ -723,6 +724,7 @@ QuickAlarmApplet.prototype = {
     // Central card
     const card = new St.BoxLayout({
       vertical: true,
+      opacity: 0,
       style_class: "qa-fullscreen-card",
     });
 
@@ -785,12 +787,6 @@ QuickAlarmApplet.prototype = {
     card.add_child(agoLabel);
     card.add_child(dismissBtn);
 
-    // Center the card
-    card.set_position(
-      monitor.x - minX + Math.floor((monitor.width - card.width) / 2),
-      monitor.y - minY + Math.floor((monitor.height - card.height) / 2),
-    );
-
     this._fullscreenOverlay.add_child(card);
 
     // Dismiss on background click
@@ -812,19 +808,28 @@ QuickAlarmApplet.prototype = {
     Main.layoutManager.addChrome(this._fullscreenOverlay, { visibleInFullscreen: true });
     global.stage.set_key_focus(this._fullscreenOverlay);
 
-    // Re-center after card gets its natural size
-    GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-      if (this._fullscreenOverlay && card) {
-        card.set_position(
-          monitor.x - minX + Math.floor((monitor.width - card.width) / 2),
-          monitor.y - minY + Math.floor((monitor.height - card.height) / 2),
-        );
-      }
+    // Wait until Cinnamon has attached and laid out the card before reading
+    // its dimensions. The captured overlay identity prevents a dismissed
+    // alarm's callback from touching a newer overlay or a destroyed card.
+    const overlay = this._fullscreenOverlay;
+    this._fullscreenLayoutIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+      this._fullscreenLayoutIdleId = 0;
+      if (this._fullscreenOverlay !== overlay || !card.get_stage()) return GLib.SOURCE_REMOVE;
+
+      card.set_position(
+        monitor.x - minX + Math.floor((monitor.width - card.width) / 2),
+        monitor.y - minY + Math.floor((monitor.height - card.height) / 2),
+      );
+      card.opacity = 255;
       return GLib.SOURCE_REMOVE;
     });
   },
 
   _hideFullscreenOverlay() {
+    if (this._fullscreenLayoutIdleId) {
+      GLib.source_remove(this._fullscreenLayoutIdleId);
+      this._fullscreenLayoutIdleId = 0;
+    }
     if (this._fullscreenAgoTimerId) {
       GLib.source_remove(this._fullscreenAgoTimerId);
       this._fullscreenAgoTimerId = 0;
